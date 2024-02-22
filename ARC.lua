@@ -41,7 +41,717 @@ ARC = {
     return result[1] 
     end,
 	['CL'] = function(str)
-	local s = string.gsub(str, "public const string ", '')
+	local s = string.gsub(str, "	public const string ", '')
+	local s_ = string.gsub(s, " = ", "\n")
+	local s__ = string.gsub(s_, ";", "")
+	local _s = string.gsub(s__, '"', "")
+	local _, count = str:gsub('\n', '\n')
+	local t1 = {}
+	local t2 ={}
+	local t3 = {}
+	local final = {}
+	for match in (_s..'\n'):gmatch("(.-)"..'\n') do
+	table.insert(t1, match);
+	end
+	local p = 1
+	for i = 1 ,#t1 , 2 do
+	  t2[p] = t1[i]
+	  p = p + 1
+	end
+	p = 1
+	for i = 2 ,#t1 , 2 do
+	  t3[p] = t1[i]
+	  p = p + 1
+	end
+	for i = 1 , count do
+	  final[i] = { ['Mark'] = tostring(t2[i]):gsub("(%l)(%u)", "%1 %2"),
+		['ID'] = tostring(t3[i]),['Pointer'] = nil,['FS'] = '',update = function(self)
+					if self.Pointer ~= nil then self.FS = 'Fast ►  ' else
+					self.FS = 'Slow ►  '
+					end
+		  end,}
+	end
+	return final
+    end,
+	['TD'] = function(text,order)
+	local junk = {[1]=''}
+	local stln = #text
+	if stln%2 ~= 0 then stln = stln+1 end
+  
+	for i = 1,stln/2 do 
+	  local v1 = (string.byte(text,i%stln*2-1))
+	  local v2 = (string.byte(text,i%stln*2))
+	  if v2 == nil then v2 = 0 end
+	  local v3 = 65536*v2+v1
+	  if #text > 2 then table.insert(junk,1,junk[1]..';'..v3) 
+	  elseif #text <= 2 then
+		table.insert(junk,1,v3) end
+	end
+	local function repeats(s,c)
+	  local _,n = s:gsub(c,"")
+	  return n
+  end
+	local ord = ''
+	if order == true and stln > 2 then  ord = ('::'..repeats(tostring(junk[1]:sub(2)),';') * 4 + 5) end
+	
+  if #text > 2 then
+	return junk[1]:sub(2)..ord else return junk[1]..ord end
+    end,
+    ['MH'] = function(method_name,class_name,edit)
+		method_name_edit = {}
+		for i = 1 ,edit do 
+			method_name_edit[i] = {address = nil ,flags = gg.TYPE_DWORD }
+		end
+        flag_type = gg.TYPE_DWORD
+        gg.setRanges(gg.REGION_OTHER)
+                gg.clearResults()
+                gg.searchNumber(ARC.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
+                String_address = gg.getResults(1)
+                String_address = String_address[1].address
+                gg.clearResults()
+                gg.setRanges(gg.REGION_C_ALLOC)
+                gg.searchNumber(String_address, flag_type)
+                class_headers = gg.getResults(gg.getResultsCount())
+                class_headers_pointer = class_headers
+                if gg.getResultsCount() == 1 then 
+                    class_headers_pointer[1].address =  class_headers_pointer[1].address - 8 
+                    class_headers_pointer = gg.getValues(class_headers_pointer)
+
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[1].value,true)
+                elseif gg.getResultsCount() > 1 then
+                    for i, v in pairs(class_headers) do
+                            class_headers[i].address = class_headers[i].address + 4
+                            class_headers = gg.getValues(class_headers)
+                            class_headers[i].address = ARC.hex(class_headers[i].value + 8 ,true)
+                            class_headers = gg.getValues(class_headers)
+                            class_headers[i].address = class_headers[i].value
+                            class_headers[i].flags = gg.TYPE_BYTE
+                    end
+                    class_headers = gg.getValues(class_headers)
+                    gg.clearResults()
+                    for k,v in pairs(class_headers) do 
+                        res = {}
+                        for i = 1 , #class_name do 
+                            res[i] = utf8.char(class_headers[k].value)
+                            class_headers[k].address = class_headers[k].address + 1
+                            class_headers = gg.getValues(class_headers)
+                        end
+                        result = table.concat(res)
+                        if result == class_name then 
+                            
+                    class_headers_pointer[k].address =  class_headers_pointer[k].address - 8 
+                    class_headers_pointer = gg.getValues(class_headers_pointer)
+
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[k].value,true)
+
+                        end
+                    end
+                end
+                    gg.clearResults()
+					for k = 2 ,#method_name_edit do 
+						method_name_edit[k].address = method_name_edit[k-1].address + 4 
+					end
+                    return method_name_edit
+                    
+                end,
+	['CH'] = function(class,offset) 
+		Result = {}
+		flag_type = gg.TYPE_DWORD
+		FieldSearch = ARC.SB(class)
+		gg.setRanges(gg.REGION_OTHER)
+		gg.clearResults()
+		gg.searchNumber(FieldSearch, gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
+		String_address = gg.getResults(1)
+		String_address = String_address[1].address
+		gg.clearResults()
+		gg.setRanges(gg.REGION_C_ALLOC)
+		gg.searchNumber(String_address, flag_type)
+		class_headers = gg.getResults(gg.getResultsCount())
+			for i, v in pairs(class_headers) do
+					class_headers[i].address = class_headers[i].address - 8
+			end
+		
+			gg.setRanges(gg.REGION_ANONYMOUS)
+			gg.loadResults(class_headers)
+			gg.searchPointer(0)
+			Result =  gg.getResults(gg.getResultsCount())
+			for i, v in pairs(Result) do
+				Result[i].address = Result[i].address + offset
+			end
+			Result = gg.getValues(Result)
+	return Result
+    end,
+    ['Worker'] = function(self)
+        for k,v in pairs(self) do 
+            if self.Method ~= nil then         
+                return {
+                Status = ' [OFF]',
+                  temp = false,
+                  Name = self.Name,
+                  _Name = self._Name,
+                  Method = self.Method,
+                  Class = self.Class,
+                  val = {
+                    Edit = self.Edit,
+                    Pointer = nil,
+                    Restore = {},
+                  },
+                  Slave = function(self) 
+                    if self.temp == false then 
+                      if self.val.Pointer == nil then
+                                  self.val.Pointer = ARC.MH(self.Method,self.Class,#self.val.Edit) 
+								  self.val.Pointer = gg.getValues(self.val.Pointer)
+					  end
+                                  for i=1,#self.val.Edit do 
+                                    self.val.Restore[i] = self.val.Pointer[i].value
+                                    if self.val.Pointer[i].address == nil or self.val.Pointer[i].value == nil then 
+                                    self.val.Pointer[i].address = self.val.Pointer[i-1].address + 4
+                                    self.val.Pointer[i].flags = gg.TYPE_DWORD
+                                    self.val.Pointer = gg.getValues(self.val.Pointer) end
+                                  end
+                      for k,v in pairs(self.val.Pointer) do 
+                        self.val.Pointer[k].value = self.val.Edit[k]
+                      end
+                      gg.setValues(self.val.Pointer)
+
+                      self.Status = ' [ON]'
+                      gg.toast(tostring(self.Name..self.Status))
+                      self.temp = true
+                      return self.Status
+                    elseif self.temp == true then 
+                          for k,v in pairs(self.val.Pointer) do 
+                        self.val.Pointer[k].value = self.val.Restore[k]
+                      end
+                      gg.setValues(self.val.Pointer)
+                      self.Status = ' [OFF]'
+                      gg.toast(tostring(self.Name..self.Status))
+                      self.temp = false
+                      end
+                      return self.Status
+                    end,
+                  } end
+            if self.Method == nil then 
+                return {
+                    Status = ' ( None )',
+                    Name = self.Name,
+                    _Name = self.Name,
+                    Class = self.Class,
+                    offset = self.offset,
+                    val = {
+                        Items = nil,
+                        Restore = {},
+                        Temp_ = nil, --special
+                        Menu = {}, --special
+                        Enum = self.Enum,
+                      },
+
+                    Slave = function(self)
+                        if self.val.Temp_ == nil then
+                        gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
+                        if self.val.Item == nil then 
+                        self.val.Items = ARC.CL(self.val.Enum) end
+                        
+                        self.val.Temp_ = ARC.CH(self.Class,tonumber(self.offset))
+						self.val.Temp_ = gg.getValues(self.val.Temp_)
+						for k = 1, #self.val.Temp_ do 
+							self.val.Restore[k] = self.val.Temp_[k].value
+						end
+                        gg.clearResults()
+                        gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
+                        for k,v in pairs(self.val.Temp_) do 
+                        DumpedItem = {
+                            [1] = {address = ARC.hex(self.val.Temp_[k].value,true),
+                            flags = gg.TYPE_DWORD,
+                            name = "START"},
+                            [2]= {
+                            address = ARC.hex(self.val.Temp_[k].value + 0x8 ,true) ,
+                            flags = gg.TYPE_DWORD,}
+                            }
+                           DumpedItem = gg.getValues(DumpedItem)
+                           item_len = DumpedItem[2].value
+                           if item_len%2 ~= 0 then item_len = item_len + 1 end
+                           for i = 3 , (item_len/2)+2 do
+                           DumpedItem[i]= {
+                            address = DumpedItem[i-1].address + 0x4,
+                            flags = gg.TYPE_DWORD
+                           }
+                           end
+                        DumpedItem = gg.getValues(DumpedItem)
+                        local Item_name = {}
+                        for i = 3,#DumpedItem do 
+                        Item_name[i-2] = ARC.DT(DumpedItem[i].value)
+                        end
+                        local iden = table.concat(Item_name)
+                          for index,value in pairs(self.val.Items) do 
+                            if self.val.Items[index].ID == iden and self.val.Items[index].Pointer == nil then
+                            self.val.Items[index].Pointer =  ARC.hex(self.val.Temp_[k].value,true)
+                            end
+                          end
+                        end
+                    end
+                            gg.clearList()
+                            gg.clearResults()
+							for k,v in pairs(self.val.Items) do
+								self.val.Items[k]:update()
+							end
+							self.val.Menu = {}
+                            gg.toast('Ready 🙌')
+                              Menu = gg.choice({'Search for item','All Items list','Restore Items'},nil,'Last Items Searched : '..tostring(self.Status))
+                                if Menu == 1 then
+                                  Input  =  gg.prompt({'Search for Items'},nil,{'text'})
+                                 local t = Input[1]
+                                  if t ~= nil then
+                                   for i,v in pairs(self.val.Items) do
+                                     busted = string.find(self.val.Items[i].ID,t)
+                                      if busted ~= nil then
+                                       self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
+                                      end
+                                    end
+                                end
+                            elseif Menu == 2 then
+                                  for i,v in pairs(self.val.Items) do
+									self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
+                                  end
+                        	 elseif Menu == 3 then 
+								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~ARC: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
+                                    for k,v in pairs(self.val.Temp_) do 
+                                        self.val.Temp_[k].value = self.val.Restore[k]
+                                      end
+                                      gg.setValues(self.val.Temp_)
+                                      self.Status = ' ( None ) '
+                                      gg.toast(' ◄ Items Restored ►')
+									end
+                            end
+                                if self.val.Menu ~= nil then
+                                  local menu = gg.choice(self.val.Menu,nil,'Items Hack')
+                                  local ind = menu
+                                  if menu ~= nil then
+                                    gg.toast(tostring(self.val.Items[ind].Mark) .. " Selected ♥")
+                                    self.Status = ' ( '..self.val.Items[ind].Mark..' ) '
+                                    if self.val.Items[ind].Pointer == nil then 
+                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..ARC.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
+                                      local t = {}
+                                      t = gg.getResults(1)
+                                         t[1].address = t[1].address - 0x8
+                                         gg.getValues(t)
+                                         self.val.Items[ind].Pointer = ARC.hex(t[1].address,false)
+                                         gg.clearList()
+                                         gg.clearResults()
+                                        end
+                                      for k,v in pairs(self.val.Temp_) do 
+                                        self.val.Temp_[k].value = self.val.Items[ind].Pointer
+                                      end
+                                      gg.setValues(self.val.Temp_)
+                                    self.val.Temp_ = gg.getValues(self.val.Temp_)
+                                    gg.clearList()
+                                    gg.clearResults()
+                                    gg.toast('◄ '..tostring(self.val.Items[ind].Mark)..' ►')
+									self.val.Menu = nil
+                                  end
+							end
+                      end,
+                }
+            end
+        end
+
+        end,ARC = {
+	['SB'] = function(str)
+		strtab = {}
+		for i = 1 , #str do
+		  strtab[i] = (string.byte(str,i))..';'
+		  if i == #str then strtab[i] = (string.byte(str,i))..';0::'..tostring(#str+1) break; end
+		end
+		return (table.concat(strtab))
+	end,
+	['Split'] = function (s, delimiter)
+        local result = {};
+        for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+            table.insert(result, match);
+        end
+        return result;
+    end,
+	['hex'] = function (val,hx)
+		local val1 = string.format('%08X', val):sub(-8)
+		local val2 = tostring(val1)
+		if hx == true then return '0x'..tostring(val2) elseif hx == false then
+		return tostring(val2)..'h'
+		else return tostring(val2)
+		end
+	end,
+	['DT'] = function(val)
+    local result= {[1] = ''}
+    local splited = {};
+    for match in (val..';'):gmatch("(.-)"..';') do
+        table.insert(splited, match);
+    end
+    for i,v in pairs(splited) do 
+    local chk = #tostring(splited[i])
+    local v1 = math.floor(splited[i]/65536)
+    local v2 = splited[i]-(65536*v1)
+    local c1 = utf8.char(v2,v1)
+    if chk < 7 then table.insert(result,1,result[1]..utf8.char(splited[i])) end
+    if chk == 7 then table.insert(result,1,result[1]..c1) end
+    if chk > 7 then table.insert(result,1,"Sorry this is not a readable string.") break end
+    end
+    return result[1] 
+    end,
+	['CL'] = function(str)
+	local s = string.gsub(str, "	public const string ", '')
+	local s_ = string.gsub(s, " = ", "\n")
+	local s__ = string.gsub(s_, ";", "")
+	local _s = string.gsub(s__, '"', "")
+	local _, count = str:gsub('\n', '\n')
+	local t1 = {}
+	local t2 ={}
+	local t3 = {}
+	local final = {}
+	for match in (_s..'\n'):gmatch("(.-)"..'\n') do
+	table.insert(t1, match);
+	end
+	local p = 1
+	for i = 1 ,#t1 , 2 do
+	  t2[p] = t1[i]
+	  p = p + 1
+	end
+	p = 1
+	for i = 2 ,#t1 , 2 do
+	  t3[p] = t1[i]
+	  p = p + 1
+	end
+	for i = 1 , count do
+	  final[i] = { ['Mark'] = tostring(t2[i]):gsub("(%l)(%u)", "%1 %2"),
+		['ID'] = tostring(t3[i]),['Pointer'] = nil,['FS'] = '',update = function(self)
+					if self.Pointer ~= nil then self.FS = 'Fast ►  ' else
+					self.FS = 'Slow ►  '
+					end
+		  end,}
+	end
+	return final
+    end,
+	['TD'] = function(text,order)
+	local junk = {[1]=''}
+	local stln = #text
+	if stln%2 ~= 0 then stln = stln+1 end
+  
+	for i = 1,stln/2 do 
+	  local v1 = (string.byte(text,i%stln*2-1))
+	  local v2 = (string.byte(text,i%stln*2))
+	  if v2 == nil then v2 = 0 end
+	  local v3 = 65536*v2+v1
+	  if #text > 2 then table.insert(junk,1,junk[1]..';'..v3) 
+	  elseif #text <= 2 then
+		table.insert(junk,1,v3) end
+	end
+	local function repeats(s,c)
+	  local _,n = s:gsub(c,"")
+	  return n
+  end
+	local ord = ''
+	if order == true and stln > 2 then  ord = ('::'..repeats(tostring(junk[1]:sub(2)),';') * 4 + 5) end
+	
+  if #text > 2 then
+	return junk[1]:sub(2)..ord else return junk[1]..ord end
+    end,
+    ['MH'] = function(method_name,class_name,edit)
+		method_name_edit = {}
+		for i = 1 ,edit do 
+			method_name_edit[i] = {address = nil ,flags = gg.TYPE_DWORD }
+		end
+        flag_type = gg.TYPE_DWORD
+        gg.setRanges(gg.REGION_OTHER)
+                gg.clearResults()
+                gg.searchNumber(ARC.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
+                String_address = gg.getResults(1)
+                String_address = String_address[1].address
+                gg.clearResults()
+                gg.setRanges(gg.REGION_C_ALLOC)
+                gg.searchNumber(String_address, flag_type)
+                class_headers = gg.getResults(gg.getResultsCount())
+                class_headers_pointer = class_headers
+                if gg.getResultsCount() == 1 then 
+                    class_headers_pointer[1].address =  class_headers_pointer[1].address - 8 
+                    class_headers_pointer = gg.getValues(class_headers_pointer)
+
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[1].value,true)
+                elseif gg.getResultsCount() > 1 then
+                    for i, v in pairs(class_headers) do
+                            class_headers[i].address = class_headers[i].address + 4
+                            class_headers = gg.getValues(class_headers)
+                            class_headers[i].address = ARC.hex(class_headers[i].value + 8 ,true)
+                            class_headers = gg.getValues(class_headers)
+                            class_headers[i].address = class_headers[i].value
+                            class_headers[i].flags = gg.TYPE_BYTE
+                    end
+                    class_headers = gg.getValues(class_headers)
+                    gg.clearResults()
+                    for k,v in pairs(class_headers) do 
+                        res = {}
+                        for i = 1 , #class_name do 
+                            res[i] = utf8.char(class_headers[k].value)
+                            class_headers[k].address = class_headers[k].address + 1
+                            class_headers = gg.getValues(class_headers)
+                        end
+                        result = table.concat(res)
+                        if result == class_name then 
+                            
+                    class_headers_pointer[k].address =  class_headers_pointer[k].address - 8 
+                    class_headers_pointer = gg.getValues(class_headers_pointer)
+
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[k].value,true)
+
+                        end
+                    end
+                end
+                    gg.clearResults()
+					for k = 2 ,#method_name_edit do 
+						method_name_edit[k].address = method_name_edit[k-1].address + 4 
+					end
+                    return method_name_edit
+                    
+                end,
+	['CH'] = function(class,offset) 
+		Result = {}
+		flag_type = gg.TYPE_DWORD
+		FieldSearch = ARC.SB(class)
+		gg.setRanges(gg.REGION_OTHER)
+		gg.clearResults()
+		gg.searchNumber(FieldSearch, gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
+		String_address = gg.getResults(1)
+		String_address = String_address[1].address
+		gg.clearResults()
+		gg.setRanges(gg.REGION_C_ALLOC)
+		gg.searchNumber(String_address, flag_type)
+		class_headers = gg.getResults(gg.getResultsCount())
+			for i, v in pairs(class_headers) do
+					class_headers[i].address = class_headers[i].address - 8
+			end
+		
+			gg.setRanges(gg.REGION_ANONYMOUS)
+			gg.loadResults(class_headers)
+			gg.searchPointer(0)
+			Result =  gg.getResults(gg.getResultsCount())
+			for i, v in pairs(Result) do
+				Result[i].address = Result[i].address + offset
+			end
+			Result = gg.getValues(Result)
+	return Result
+    end,
+    ['Worker'] = function(self)
+        for k,v in pairs(self) do 
+            if self.Method ~= nil then         
+                return {
+                Status = ' [OFF]',
+                  temp = false,
+                  Name = self.Name,
+                  _Name = self._Name,
+                  Method = self.Method,
+                  Class = self.Class,
+                  val = {
+                    Edit = self.Edit,
+                    Pointer = nil,
+                    Restore = {},
+                  },
+                  Slave = function(self) 
+                    if self.temp == false then 
+                      if self.val.Pointer == nil then
+                                  self.val.Pointer = ARC.MH(self.Method,self.Class,#self.val.Edit) 
+								  self.val.Pointer = gg.getValues(self.val.Pointer)
+					  end
+                                  for i=1,#self.val.Edit do 
+                                    self.val.Restore[i] = self.val.Pointer[i].value
+                                    if self.val.Pointer[i].address == nil or self.val.Pointer[i].value == nil then 
+                                    self.val.Pointer[i].address = self.val.Pointer[i-1].address + 4
+                                    self.val.Pointer[i].flags = gg.TYPE_DWORD
+                                    self.val.Pointer = gg.getValues(self.val.Pointer) end
+                                  end
+                      for k,v in pairs(self.val.Pointer) do 
+                        self.val.Pointer[k].value = self.val.Edit[k]
+                      end
+                      gg.setValues(self.val.Pointer)
+
+                      self.Status = ' [ON]'
+                      gg.toast(tostring(self.Name..self.Status))
+                      self.temp = true
+                      return self.Status
+                    elseif self.temp == true then 
+                          for k,v in pairs(self.val.Pointer) do 
+                        self.val.Pointer[k].value = self.val.Restore[k]
+                      end
+                      gg.setValues(self.val.Pointer)
+                      self.Status = ' [OFF]'
+                      gg.toast(tostring(self.Name..self.Status))
+                      self.temp = false
+                      end
+                      return self.Status
+                    end,
+                  } end
+            if self.Method == nil then 
+                return {
+                    Status = ' ( None )',
+                    Name = self.Name,
+                    _Name = self.Name,
+                    Class = self.Class,
+                    offset = self.offset,
+                    val = {
+                        Items = nil,
+                        Restore = {},
+                        Temp_ = nil, --special
+                        Menu = {}, --special
+                        Enum = self.Enum,
+                      },
+
+                    Slave = function(self)
+                        if self.val.Temp_ == nil then
+                        gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
+                        if self.val.Item == nil then 
+                        self.val.Items = ARC.CL(self.val.Enum) end
+                        
+                        self.val.Temp_ = ARC.CH(self.Class,tonumber(self.offset))
+						self.val.Temp_ = gg.getValues(self.val.Temp_)
+						for k = 1, #self.val.Temp_ do 
+							self.val.Restore[k] = self.val.Temp_[k].value
+						end
+                        gg.clearResults()
+                        gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
+                        for k,v in pairs(self.val.Temp_) do 
+                        DumpedItem = {
+                            [1] = {address = ARC.hex(self.val.Temp_[k].value,true),
+                            flags = gg.TYPE_DWORD,
+                            name = "START"},
+                            [2]= {
+                            address = ARC.hex(self.val.Temp_[k].value + 0x8 ,true) ,
+                            flags = gg.TYPE_DWORD,}
+                            }
+                           DumpedItem = gg.getValues(DumpedItem)
+                           item_len = DumpedItem[2].value
+                           if item_len%2 ~= 0 then item_len = item_len + 1 end
+                           for i = 3 , (item_len/2)+2 do
+                           DumpedItem[i]= {
+                            address = DumpedItem[i-1].address + 0x4,
+                            flags = gg.TYPE_DWORD
+                           }
+                           end
+                        DumpedItem = gg.getValues(DumpedItem)
+                        local Item_name = {}
+                        for i = 3,#DumpedItem do 
+                        Item_name[i-2] = ARC.DT(DumpedItem[i].value)
+                        end
+                        local iden = table.concat(Item_name)
+                          for index,value in pairs(self.val.Items) do 
+                            if self.val.Items[index].ID == iden and self.val.Items[index].Pointer == nil then
+                            self.val.Items[index].Pointer =  ARC.hex(self.val.Temp_[k].value,true)
+                            end
+                          end
+                        end
+                    end
+                            gg.clearList()
+                            gg.clearResults()
+							for k,v in pairs(self.val.Items) do
+								self.val.Items[k]:update()
+							end
+							self.val.Menu = {}
+                            gg.toast('Ready 🙌')
+                              Menu = gg.choice({'Search for item','All Items list','Restore Items'},nil,'Last Items Searched : '..tostring(self.Status))
+                                if Menu == 1 then
+                                  Input  =  gg.prompt({'Search for Items'},nil,{'text'})
+                                 local t = Input[1]
+                                  if t ~= nil then
+                                   for i,v in pairs(self.val.Items) do
+                                     busted = string.find(self.val.Items[i].ID,t)
+                                      if busted ~= nil then
+                                       self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
+                                      end
+                                    end
+                                end
+                            elseif Menu == 2 then
+                                  for i,v in pairs(self.val.Items) do
+									self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
+                                  end
+                        	 elseif Menu == 3 then 
+								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~ARC: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
+                                    for k,v in pairs(self.val.Temp_) do 
+                                        self.val.Temp_[k].value = self.val.Restore[k]
+                                      end
+                                      gg.setValues(self.val.Temp_)
+                                      self.Status = ' ( None ) '
+                                      gg.toast(' ◄ Items Restored ►')
+									end
+                            end
+                                if self.val.Menu ~= nil then
+                                  local menu = gg.choice(self.val.Menu,nil,'Items Hack')
+                                  local ind = menu
+                                  if menu ~= nil then
+                                    gg.toast(tostring(self.val.Items[ind].Mark) .. " Selected ♥")
+                                    self.Status = ' ( '..self.val.Items[ind].Mark..' ) '
+                                    if self.val.Items[ind].Pointer == nil then 
+                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..ARC.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
+                                      local t = {}
+                                      t = gg.getResults(1)
+                                         t[1].address = t[1].address - 0x8
+                                         gg.getValues(t)
+                                         self.val.Items[ind].Pointer = ARC.hex(t[1].address,false)
+                                         gg.clearList()
+                                         gg.clearResults()
+                                        end
+                                      for k,v in pairs(self.val.Temp_) do 
+                                        self.val.Temp_[k].value = self.val.Items[ind].Pointer
+                                      end
+                                      gg.setValues(self.val.Temp_)
+                                    self.val.Temp_ = gg.getValues(self.val.Temp_)
+                                    gg.clearList()
+                                    gg.clearResults()
+                                    gg.toast('◄ '..tostring(self.val.Items[ind].Mark)..' ►')
+									self.val.Menu = nil
+                                  end
+							end
+                      end,
+                }
+            end
+        end
+
+        end,ARC = {
+	['SB'] = function(str)
+		strtab = {}
+		for i = 1 , #str do
+		  strtab[i] = (string.byte(str,i))..';'
+		  if i == #str then strtab[i] = (string.byte(str,i))..';0::'..tostring(#str+1) break; end
+		end
+		return (table.concat(strtab))
+	end,
+	['Split'] = function (s, delimiter)
+        local result = {};
+        for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+            table.insert(result, match);
+        end
+        return result;
+    end,
+	['hex'] = function (val,hx)
+		local val1 = string.format('%08X', val):sub(-8)
+		local val2 = tostring(val1)
+		if hx == true then return '0x'..tostring(val2) elseif hx == false then
+		return tostring(val2)..'h'
+		else return tostring(val2)
+		end
+	end,
+	['DT'] = function(val)
+    local result= {[1] = ''}
+    local splited = {};
+    for match in (val..';'):gmatch("(.-)"..';') do
+        table.insert(splited, match);
+    end
+    for i,v in pairs(splited) do 
+    local chk = #tostring(splited[i])
+    local v1 = math.floor(splited[i]/65536)
+    local v2 = splited[i]-(65536*v1)
+    local c1 = utf8.char(v2,v1)
+    if chk < 7 then table.insert(result,1,result[1]..utf8.char(splited[i])) end
+    if chk == 7 then table.insert(result,1,result[1]..c1) end
+    if chk > 7 then table.insert(result,1,"Sorry this is not a readable string.") break end
+    end
+    return result[1] 
+    end,
+	['CL'] = function(str)
+	local s = string.gsub(str, "	public const string ", '')
 	local s_ = string.gsub(s, " = ", "\n")
 	local s__ = string.gsub(s_, ";", "")
 	local _s = string.gsub(s__, '"', "")
@@ -2399,7 +3109,7 @@ public const string Berry = "berry";
 			info = gg.getTargetInfo()
             if self.One == true then
 				if info.x64 == true then gg.alert("This script meant for 32Bit users it wont work for you. \n Thank you for your understanding! \n \n ~ ARC") os.exit(); else
-               		gg.toast("♥ Made by Arc ♥",true)
+               		gg.toast("♥ MADE BY ARC♥",true)
 
 				for i = 1,#ARC.Data do 
                 self.FN[ARC.Data[i]._Name] = ARC.Worker(ARC.Data[i])
@@ -2437,4 +3147,3 @@ while true do
         end
     end
 end
-
