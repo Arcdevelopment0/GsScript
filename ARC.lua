@@ -1,3 +1,4 @@
+
 ARC = {
 	['SB'] = function(str)
 		local strtab = {}
@@ -7,6 +8,13 @@ ARC = {
 		end
 		return (table.concat(strtab))
 	end,
+	['Split'] = function (s, delimiter)
+        local result = {};
+        for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+            table.insert(result, match);
+        end
+        return result;
+    end,
 	['hex'] = function (val,hx)
 	local adr = 8
 	if Info.x64 == true then adr = adr * 2 end
@@ -102,38 +110,38 @@ ARC = {
                 gg.setRanges(gg.REGION_C_ALLOC)
 				::try_C::
                 gg.searchNumber(String_address, flag_type)
-                local Class_headers = gg.getResults(gg.getResultsCount())
-                local Class_headers_pointer = Class_headers
+                local class_headers = gg.getResults(gg.getResultsCount())
+                local class_headers_pointer = class_headers
                 if gg.getResultsCount() == 1 then 
-                    Class_headers_pointer[1].address =  Class_headers_pointer[1].address - OFFSET(8)
-                    Class_headers_pointer = gg.getValues(Class_headers_pointer)
+                    class_headers_pointer[1].address =  class_headers_pointer[1].address - OFFSET(8)
+                    class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = ARC.hex(Class_headers_pointer[1].value,true)
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[1].value,true)
                 elseif gg.getResultsCount() > 1 then
-                    for i, v in pairs(Class_headers) do
-                            Class_headers[i].address = Class_headers[i].address + OFFSET(4)
-                            Class_headers = gg.getValues(Class_headers)
-                            Class_headers[i].address = ARC.hex(Class_headers[i].value + OFFSET(8) ,true)
-                            Class_headers = gg.getValues(Class_headers)
-                            Class_headers[i].address = Class_headers[i].value
-                            Class_headers[i].flags = gg.TYPE_BYTE
+                    for i, v in pairs(class_headers) do
+                            class_headers[i].address = class_headers[i].address + OFFSET(4)
+                            class_headers = gg.getValues(class_headers)
+                            class_headers[i].address = ARC.hex(class_headers[i].value + OFFSET(8) ,true)
+                            class_headers = gg.getValues(class_headers)
+                            class_headers[i].address = class_headers[i].value
+                            class_headers[i].flags = gg.TYPE_BYTE
                     end
-                    Class_headers = gg.getValues(Class_headers)
+                    class_headers = gg.getValues(class_headers)
                     gg.clearResults()
-                    for k,v in pairs(Class_headers) do 
+                    for k,v in pairs(class_headers) do 
                         res = {}
                         for i = 1 , #class_name do 
-                            res[i] = utf8.char(Class_headers[k].value)
-                            Class_headers[k].address = Class_headers[k].address + 1
-                            Class_headers = gg.getValues(Class_headers)
+                            res[i] = utf8.char(class_headers[k].value)
+                            class_headers[k].address = class_headers[k].address + 1
+                            class_headers = gg.getValues(class_headers)
                         end
                         result = table.concat(res)
                         if result == class_name then 
                             
-                    Class_headers_pointer[k].address =  Class_headers_pointer[k].address - OFFSET(8) 
-                    Class_headers_pointer = gg.getValues(Class_headers_pointer)
+                    class_headers_pointer[k].address =  class_headers_pointer[k].address - OFFSET(8) 
+                    class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = ARC.hex(Class_headers_pointer[k].value,true)
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[k].value,true)
                         end
                     end
                 end
@@ -148,7 +156,7 @@ ARC = {
                 end,
 	['CH'] = function(class,offset) 
 		Result = {}
-		local flag_type = FLAG()
+		flag_type = FLAG()
 		FieldSearch = ARC.SB(class)
 		gg.setRanges(gg.REGION_OTHER)
 		gg.clearResults()
@@ -159,14 +167,14 @@ ARC = {
 		gg.setRanges(gg.REGION_C_ALLOC)
 		::try_emulator::
 		gg.searchNumber(String_address, flag_type)
-		Class_headers = gg.getResults(gg.getResultsCount())
+		class_headers = gg.getResults(gg.getResultsCount())
 		if gg.getResultsCount() == 0 then gg.setRanges(gg.REGION_C_DATA | gg.REGION_ANONYMOUS | gg.REGION_C_BSS) goto try_emulator end
-			for i, v in pairs(Class_headers) do
-					Class_headers[i].address = Class_headers[i].address - OFFSET(8)
+			for i, v in pairs(class_headers) do
+					class_headers[i].address = class_headers[i].address - OFFSET(8)
 			end
 		
 			gg.setRanges(gg.REGION_ANONYMOUS)
-			gg.loadResults(Class_headers)
+			gg.loadResults(class_headers)
 			gg.searchPointer(0)
 			Result =  gg.getResults(gg.getResultsCount())
 			for i, v in pairs(Result) do
@@ -179,7 +187,7 @@ ARC = {
         for k,v in pairs(self) do 
             if self.Method ~= nil then         
                 return {
-                Status = ' [OFF]' or ' [ON]',
+                Status = ' [OFF]',
                   temp = false,
                   Name = self.Name,
                   _Name = self._Name,
@@ -256,7 +264,7 @@ ARC = {
 							then table.remove(self.val.Temp_,k) end
 						end
                         gg.clearResults()
-                        Lowend = gg.choice({"Low-End Device =<4GB RAM ","High End Device >6GB Ram"},"Low End will set all items to Slow",nil)
+                        Lowend = gg.choice({"Low-End Device","High End Device"},"Low End will set all items to Slow",nil)
 						if Lowend == 1 then goto low else
                         for k,v in pairs(self.val.Temp_) do  
                         DumpedItem = {
@@ -360,89 +368,61 @@ ARC = {
         end,
     ['Data'] = {
         [1] = {
-            Name = '🎁 x99 Stacks',
+            Name = '🎁 x20 Stacks',
             _Name = '1Stack',
-            Method = 'get__amount',
+            Method = 'ChangeAmount',
             Class = 'LimitedInventoryStack',
-            Edit = {[1] = '~A mov r0, #99',[2] = '~A bx lr'},
+            Edit = {[1] = {[1] = '~A mvn r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 mvn W0, #1',[2] = '~A8 RET',}},
               },
         [2] = {
-            Name = '👑 Crafting Cheat',
+            Name = '⚒️ Crafting Cheat',
             _Name = '2Craft',
             Method = 'get_canCraft',
             Class = 'Research',
-            Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR'},
+            Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [3] = {
-            Name = '✂ Split Weapons',
+            Name = '✂️ Split Weapons',
             _Name = '3Sp',
             Method = 'CanSplit',
             Class = 'InventorySet',
-            Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
+            Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [4] = {
-            Name = '❗Auto Assemble (NOT FULLY SAFE)',
+            Name = '🧲 Free Assemble (NOT SAFE)',
             _Name = '4Assemble',
             Method = 'CanComplete',
             Class = 'BuildingCollection',
-            Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
+            Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [5] = {
-            Name = '🔓 Unlock Maps',
+            Name = '🌐 Unlock Maps',
             _Name = '5Maps',
             Method = 'get_isVisible',
             Class = 'MapPointPresenter',
-            Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
+            Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [6] = {
-            Name = '📝 Unlock Blueprints',
+            Name = '🗂 Unlock Blueprints',
             _Name = '6BP',
             Method = 'get_isLocked',
             Class = 'Research',
-            Edit = {[1] = '~A MOV R0, #0',[2] = '~A BX LR',},
+            Edit = {[1] = {[1] = '~A mov r0, #0',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, WZR',[2] = '~A8 RET',}},
               },
         [7] = {
-            Name = '❗Free Upgrade Tier (NOT SAFE)',
+            Name = '🧰 Free Upgrade Tier (CAN CURRUPT YOUR DATA)',
             _Name = '7Assembly_v1',
             Method = 'CanUpgrade',
             Class = 'ConstructionTierModel',
-            Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
+            Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
-              --	[9] = {
-			--Name = '🏆 Instant Lvl 200',
-			--_Name = '9EXP',
-			--Method = 'get_amount',
-			--Class = 'ExperienceResource',
-			---Edit = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},
-			--  },
-		[10] = {
-			Name = '🏃 Instant Travel',
-			_Name = '10Travel',
-			Method = 'get_walkSpeed',
-			Class = 'MapMovement',
-			Edit = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},
-			  },
-		[11] = {
-				Name = '👊 Unlimited Durability',
-				_Name = '11Dura',
-				Method = 'get_Durability',
-				Class = 'DurabilityInventoryStack',
-				Edit = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},
-			   },
-		[12] = {
-			Name = '💣Attack Damage',
-			_Name = '12Dmg',
-			Method = 'GetWeaponDamageBonus',
-			Class = 'WeaponAttackActivity',
-			Edit = {[1] = '~A MOVW R0, #6666',[2] = '~A bx lr'},
-		},
         [8] = {
-            Name = '🔰Items Hack',
+            Name = '🔎 Items Hack',
             _Name = '8Items',
             Class = 'AddStackScriptNode',
             offset = 0x18,
             Enum = [[
-		public const string Berry = "berry";
+            public const string Berry = "berry";
 	public const string BerryDrink = "berry_drink";
 	public const string MeatRaw = "meat_raw";
 	public const string MeatRoast = "meat_roast";
@@ -2303,12 +2283,36 @@ ARC = {
 	public const string ResearchForMourningReaperGloves = "research_for_mourning_reaper_gloves";
 	public const string ResearchForMourningReaperPants = "research_for_mourning_reaper_pants";
 	public const string ResearchForMourningReaperBoots = "research_for_mourning_reaper_boots";
-	]],
+	
+   ]],
         },
-      
-    },
-    
-    
+		[9] = {
+			Name = 'Instant Lvl 200',
+			_Name = '9EXP',
+			Method = 'get_amount',
+			Class = 'ExperienceResource',
+			Edit = {[1] = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #19156',[2] = '~A8 MOV W1,  #22418',[3] = '~A8 MUL W0, W0, W1',[4] = '~A8 MOV W1,  #63992',[5] = '~A8 ADD W0, W0, W1',[6] = '~A8 SCVTF D0, W0',[7] = 'C0035FD6r',
+		},}
+			  },
+		[10] = {
+			Name = 'Instant Travel',
+			_Name = '10Travel',
+			Method = 'get_walkSpeed',
+			Class = 'MapMovement',
+			Edit = {[1] = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #666',[2] = '0000271Er',[3] = '00D8215Er',[4] = '0000261Er',[5] = 'C0035FD6r',},},},
+		[11] = {
+				Name = 'Unlimited Durability',
+				_Name = '11Dura',
+				Method = 'get_Durability',
+				Class = 'DurabilityInventoryStack',
+				Edit = {[1] = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #999',[2] = '~A8 SCVTF D0, W0',[3] = 'C0035FD6r',},},},
+		[12] = {
+			Name = 'Attack Damage',
+			_Name = '12Dmg',
+			Method = 'GetWeaponDamageBonus',
+			Class = 'WeaponAttackActivity',
+			Edit = {[1] = {[1] = '~A MOVW R0, #6666',[2] = '~A bx lr'},[2] = {[2]={[1] = '~A8 MOVW W0, #6666',[2] = '~A8 RET',},},},},},
+
     ['Engine'] = {
         MENU = {},
         FN = {},
