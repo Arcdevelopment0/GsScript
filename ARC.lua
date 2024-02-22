@@ -1,22 +1,16 @@
-
 ARC = {
 	['SB'] = function(str)
-		strtab = {}
+		local strtab = {}
 		for i = 1 , #str do
 		  strtab[i] = (string.byte(str,i))..';'
 		  if i == #str then strtab[i] = (string.byte(str,i))..';0::'..tostring(#str+1) break; end
 		end
 		return (table.concat(strtab))
 	end,
-	['Split'] = function (s, delimiter)
-        local result = {};
-        for match in (s..delimiter):gmatch("(.-)"..delimiter) do
-            table.insert(result, match);
-        end
-        return result;
-    end,
 	['hex'] = function (val,hx)
-		local val1 = string.format('%08X', val):sub(-8)
+	local adr = 8
+	if Info.x64 == true then adr = adr * 2 end
+		local val1 = string.format('%08X', val):sub(-adr)
 		local val2 = tostring(val1)
 		if hx == true then return '0x'..tostring(val2) elseif hx == false then
 		return tostring(val2)..'h'
@@ -41,37 +35,33 @@ ARC = {
     return result[1] 
     end,
 	['CL'] = function(str)
-	local s = string.gsub(str, "	public const string ", '')
-	local s_ = string.gsub(s, " = ", "\n")
-	local s__ = string.gsub(s_, ";", "")
-	local _s = string.gsub(s__, '"', "")
-	local _, count = str:gsub('\n', '\n')
-	local t1 = {}
-	local t2 ={}
-	local t3 = {}
-	local final = {}
-	for match in (_s..'\n'):gmatch("(.-)"..'\n') do
-	table.insert(t1, match);
-	end
-	local p = 1
-	for i = 1 ,#t1 , 2 do
-	  t2[p] = t1[i]
-	  p = p + 1
-	end
-	p = 1
-	for i = 2 ,#t1 , 2 do
-	  t3[p] = t1[i]
-	  p = p + 1
-	end
-	for i = 1 , count do
-	  final[i] = { ['Mark'] = tostring(t2[i]):gsub("(%l)(%u)", "%1 %2"),
-		['ID'] = tostring(t3[i]),['Pointer'] = nil,['FS'] = '',update = function(self)
-					if self.Pointer ~= nil then self.FS = 'Fast ►  ' else
-					self.FS = 'Slow ►  '
-					end
-		  end,}
-	end
-	return final
+    local Final = {}
+    local check = {}
+    local ch = nil
+    for mark,id in str:gmatch('public const string (%g+) = "(%g+)";') do 
+        if not id:match('tome') and not id:match('perk') then 
+        if id:match('(.-%_*)(%d+)') ~= nil and id:match('book') ~= nil or id:match('grind') ~= nil  then 
+          local ne,ol = id:match('(.-%_*)(%d+)')
+          if ch ~= ne and ch~= nil then 
+            Final[#Final+1] = {['Mark'] = tostring(mark:gsub("(%l)(%u)", "%1 %2")):gsub('%d+',''),['ID'] = tostring(check[#check])}
+          end
+          check[#check + 1 ] = id
+          ch = ne
+        else
+        Final[#Final+1] = {['Mark'] = tostring(mark:gsub("(%l)(%u)", "%1 %2")),['ID'] = tostring(id)} 
+        end
+      end
+    end
+    for k,v in ipairs(Final) do 
+      Final[k]['Pointer'] = nil
+      Final[k]['FS'] = ''
+      Final[k].update = function(self)
+        if self.Pointer ~= nil then self.FS = 'Fast ►  ' else
+        self.FS = 'Slow ►  '
+        end
+      end
+    end
+	return Final
     end,
 	['TD'] = function(text,order)
 	local junk = {[1]=''}
@@ -98,11 +88,11 @@ ARC = {
 	return junk[1]:sub(2)..ord else return junk[1]..ord end
     end,
     ['MH'] = function(method_name,class_name,edit)
-		method_name_edit = {}
+		local method_name_edit = {}
 		for i = 1 ,edit do 
-			method_name_edit[i] = {address = nil ,flags = gg.TYPE_DWORD }
+			method_name_edit[i] = {address = nil ,flags = FLAG() }
 		end
-        flag_type = gg.TYPE_DWORD
+        local flag_type = FLAG()
         gg.setRanges(gg.REGION_OTHER)
                 gg.clearResults()
                 gg.searchNumber(ARC.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
@@ -110,53 +100,55 @@ ARC = {
                 String_address = String_address[1].address
                 gg.clearResults()
                 gg.setRanges(gg.REGION_C_ALLOC)
+				::try_C::
                 gg.searchNumber(String_address, flag_type)
-                class_headers = gg.getResults(gg.getResultsCount())
-                class_headers_pointer = class_headers
+                local Class_headers = gg.getResults(gg.getResultsCount())
+                local Class_headers_pointer = Class_headers
                 if gg.getResultsCount() == 1 then 
-                    class_headers_pointer[1].address =  class_headers_pointer[1].address - 8 
-                    class_headers_pointer = gg.getValues(class_headers_pointer)
+                    Class_headers_pointer[1].address =  Class_headers_pointer[1].address - OFFSET(8)
+                    Class_headers_pointer = gg.getValues(Class_headers_pointer)
 
-                    method_name_edit[1].address = ARC.hex(class_headers_pointer[1].value,true)
+                    method_name_edit[1].address = ARC.hex(Class_headers_pointer[1].value,true)
                 elseif gg.getResultsCount() > 1 then
-                    for i, v in pairs(class_headers) do
-                            class_headers[i].address = class_headers[i].address + 4
-                            class_headers = gg.getValues(class_headers)
-                            class_headers[i].address = ARC.hex(class_headers[i].value + 8 ,true)
-                            class_headers = gg.getValues(class_headers)
-                            class_headers[i].address = class_headers[i].value
-                            class_headers[i].flags = gg.TYPE_BYTE
+                    for i, v in pairs(Class_headers) do
+                            Class_headers[i].address = Class_headers[i].address + OFFSET(4)
+                            Class_headers = gg.getValues(Class_headers)
+                            Class_headers[i].address = ARC.hex(Class_headers[i].value + OFFSET(8) ,true)
+                            Class_headers = gg.getValues(Class_headers)
+                            Class_headers[i].address = Class_headers[i].value
+                            Class_headers[i].flags = gg.TYPE_BYTE
                     end
-                    class_headers = gg.getValues(class_headers)
+                    Class_headers = gg.getValues(Class_headers)
                     gg.clearResults()
-                    for k,v in pairs(class_headers) do 
+                    for k,v in pairs(Class_headers) do 
                         res = {}
                         for i = 1 , #class_name do 
-                            res[i] = utf8.char(class_headers[k].value)
-                            class_headers[k].address = class_headers[k].address + 1
-                            class_headers = gg.getValues(class_headers)
+                            res[i] = utf8.char(Class_headers[k].value)
+                            Class_headers[k].address = Class_headers[k].address + 1
+                            Class_headers = gg.getValues(Class_headers)
                         end
                         result = table.concat(res)
                         if result == class_name then 
                             
-                    class_headers_pointer[k].address =  class_headers_pointer[k].address - 8 
-                    class_headers_pointer = gg.getValues(class_headers_pointer)
+                    Class_headers_pointer[k].address =  Class_headers_pointer[k].address - OFFSET(8) 
+                    Class_headers_pointer = gg.getValues(Class_headers_pointer)
 
-                    method_name_edit[1].address = ARC.hex(class_headers_pointer[k].value,true)
-
+                    method_name_edit[1].address = ARC.hex(Class_headers_pointer[k].value,true)
                         end
                     end
                 end
                     gg.clearResults()
+					if method_name_edit[1].address == nil then gg.setRanges(gg.REGION_C_DATA | gg.REGION_ANONYMOUS | gg.REGION_C_BSS) goto try_C else
 					for k = 2 ,#method_name_edit do 
-						method_name_edit[k].address = method_name_edit[k-1].address + 4 
+						method_name_edit[k].address = method_name_edit[k-1].address + 4
 					end
+					
                     return method_name_edit
-                    
+                    end
                 end,
 	['CH'] = function(class,offset) 
 		Result = {}
-		flag_type = gg.TYPE_DWORD
+		local flag_type = FLAG()
 		FieldSearch = ARC.SB(class)
 		gg.setRanges(gg.REGION_OTHER)
 		gg.clearResults()
@@ -165,18 +157,20 @@ ARC = {
 		String_address = String_address[1].address
 		gg.clearResults()
 		gg.setRanges(gg.REGION_C_ALLOC)
+		::try_emulator::
 		gg.searchNumber(String_address, flag_type)
-		class_headers = gg.getResults(gg.getResultsCount())
-			for i, v in pairs(class_headers) do
-					class_headers[i].address = class_headers[i].address - 8
+		Class_headers = gg.getResults(gg.getResultsCount())
+		if gg.getResultsCount() == 0 then gg.setRanges(gg.REGION_C_DATA | gg.REGION_ANONYMOUS | gg.REGION_C_BSS) goto try_emulator end
+			for i, v in pairs(Class_headers) do
+					Class_headers[i].address = Class_headers[i].address - OFFSET(8)
 			end
 		
 			gg.setRanges(gg.REGION_ANONYMOUS)
-			gg.loadResults(class_headers)
+			gg.loadResults(Class_headers)
 			gg.searchPointer(0)
 			Result =  gg.getResults(gg.getResultsCount())
 			for i, v in pairs(Result) do
-				Result[i].address = Result[i].address + offset
+				Result[i].address = Result[i].address + OFFSET(offset)
 			end
 			Result = gg.getValues(Result)
 	return Result
@@ -185,7 +179,7 @@ ARC = {
         for k,v in pairs(self) do 
             if self.Method ~= nil then         
                 return {
-                Status = ' [OFF]',
+                Status = ' [OFF]' or ' [ON]',
                   temp = false,
                   Name = self.Name,
                   _Name = self._Name,
@@ -199,10 +193,10 @@ ARC = {
                   Slave = function(self) 
                     if self.temp == false then 
                       if self.val.Pointer == nil then
-                                  self.val.Pointer = ARC.MH(self.Method,self.Class,#self.val.Edit) 
+                                  self.val.Pointer = ARC.MH(self.Method,self.Class,#self.val.Edit[OFFSET(1)]) 
 								  self.val.Pointer = gg.getValues(self.val.Pointer)
 					  end
-                                  for i=1,#self.val.Edit do 
+                                  for i=1,#self.val.Edit[OFFSET(1)] do 
                                     self.val.Restore[i] = self.val.Pointer[i].value
                                     if self.val.Pointer[i].address == nil or self.val.Pointer[i].value == nil then 
                                     self.val.Pointer[i].address = self.val.Pointer[i-1].address + 4
@@ -210,7 +204,7 @@ ARC = {
                                     self.val.Pointer = gg.getValues(self.val.Pointer) end
                                   end
                       for k,v in pairs(self.val.Pointer) do 
-                        self.val.Pointer[k].value = self.val.Edit[k]
+                        self.val.Pointer[k].value = self.val.Edit[OFFSET(1)][k]
                       end
                       gg.setValues(self.val.Pointer)
 
@@ -251,20 +245,26 @@ ARC = {
                         if self.val.Item == nil then 
                         self.val.Items = ARC.CL(self.val.Enum) end
                         
-                        self.val.Temp_ = ARC.CH(self.Class,tonumber(self.offset))
+                        self.val.Temp_ = ARC.CH(self.Class,self.offset)
 						self.val.Temp_ = gg.getValues(self.val.Temp_)
 						for k = 1, #self.val.Temp_ do 
+				
 							self.val.Restore[k] = self.val.Temp_[k].value
 						end
+						for k,v in pairs(self.val.Temp_) do 
+							if self.val.Temp_[k].value == '0' or self.val.Temp_[k].value == '1' and self.val.Temp_[k].value ~= nil 
+							then table.remove(self.val.Temp_,k) end
+						end
                         gg.clearResults()
-                        gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
-                        for k,v in pairs(self.val.Temp_) do 
+                        Lowend = gg.choice({"I'm Using Low-End Phone / PC","I'm Good"},"Low End will set all items to Slow",nil)
+						if Lowend == 1 then goto low else
+                        for k,v in pairs(self.val.Temp_) do  
                         DumpedItem = {
                             [1] = {address = ARC.hex(self.val.Temp_[k].value,true),
                             flags = gg.TYPE_DWORD,
                             name = "START"},
                             [2]= {
-                            address = ARC.hex(self.val.Temp_[k].value + 0x8 ,true) ,
+                            address = ARC.hex(self.val.Temp_[k].value + OFFSET(8) ,true) ,
                             flags = gg.TYPE_DWORD,}
                             }
                            DumpedItem = gg.getValues(DumpedItem)
@@ -287,13 +287,16 @@ ARC = {
                             self.val.Items[index].Pointer =  ARC.hex(self.val.Temp_[k].value,true)
                             end
                           end
-                        end
+							end
+						end
+						::low::
                     end
                             gg.clearList()
                             gg.clearResults()
 							for k,v in pairs(self.val.Items) do
 								self.val.Items[k]:update()
 							end
+
 							self.val.Menu = {}
                             gg.toast('Ready 🙌')
                               Menu = gg.choice({'Search for item','All Items list','Restore Items'},nil,'Last Items Searched : '..tostring(self.Status))
@@ -302,7 +305,7 @@ ARC = {
                                  local t = Input[1]
                                   if t ~= nil then
                                    for i,v in pairs(self.val.Items) do
-                                     busted = string.find(self.val.Items[i].ID,t)
+                                     local busted = string.find(self.val.Items[i].ID,t)
                                       if busted ~= nil then
                                        self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
                                       end
@@ -332,7 +335,7 @@ ARC = {
                                       gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..ARC.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
                                       local t = {}
                                       t = gg.getResults(1)
-                                         t[1].address = t[1].address - 0x8
+                                         t[1].address = t[1].address - OFFSET(8)
                                          gg.getValues(t)
                                          self.val.Items[ind].Pointer = ARC.hex(t[1].address,false)
                                          gg.clearList()
@@ -357,61 +360,89 @@ ARC = {
         end,
     ['Data'] = {
         [1] = {
-            Name = '🎁x99 Stacks',
+            Name = '🎁 x99 Stacks',
             _Name = '1Stack',
             Method = 'get__amount',
             Class = 'LimitedInventoryStack',
             Edit = {[1] = '~A mov r0, #99',[2] = '~A bx lr'},
               },
         [2] = {
-            Name = '⚒️Crafting Cheat',
+            Name = '👑 Crafting Cheat',
             _Name = '2Craft',
             Method = 'get_canCraft',
             Class = 'Research',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR'},
               },
         [3] = {
-            Name = '✂️Split Weapons',
+            Name = '✂ Split Weapons',
             _Name = '3Sp',
             Method = 'CanSplit',
             Class = 'InventorySet',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
         [4] = {
-            Name = '🧰 Free Assemble',
+            Name = '❗Auto Assemble (NOT FULLY SAFE)',
             _Name = '4Assemble',
             Method = 'CanComplete',
             Class = 'BuildingCollection',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
         [5] = {
-            Name = '🌐Unlock Maps',
+            Name = '🔓 Unlock Maps',
             _Name = '5Maps',
             Method = 'get_isVisible',
             Class = 'MapPointPresenter',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
         [6] = {
-            Name = '📜Unlock Blueprints',
+            Name = '📝 Unlock Blueprints',
             _Name = '6BP',
             Method = 'get_isLocked',
             Class = 'Research',
             Edit = {[1] = '~A MOV R0, #0',[2] = '~A BX LR',},
               },
         [7] = {
-            Name = '🛡Free Upgrade Tier',
+            Name = '❗Free Upgrade Tier (NOT SAFE)',
             _Name = '7Assembly_v1',
             Method = 'CanUpgrade',
             Class = 'ConstructionTierModel',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
+              	[9] = {
+			Name = '🏆 Instant Lvl 200',
+			_Name = '9EXP',
+			Method = 'get_amount',
+			Class = 'ExperienceResource',
+			Edit = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},
+			  },
+		[10] = {
+			Name = '🏃 Instant Travel',
+			_Name = '10Travel',
+			Method = 'get_walkSpeed',
+			Class = 'MapMovement',
+			Edit = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},
+			  },
+		[11] = {
+				Name = '👊 Unlimited Durability',
+				_Name = '11Dura',
+				Method = 'get_Durability',
+				Class = 'DurabilityInventoryStack',
+				Edit = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},
+			   },
+		[12] = {
+			Name = '💣Attack Damage',
+			_Name = '12Dmg',
+			Method = 'GetWeaponDamageBonus',
+			Class = 'WeaponAttackActivity',
+			Edit = {[1] = '~A MOVW R0, #6666',[2] = '~A bx lr'},
+		},
         [8] = {
-            Name = '🔎Items Hack',
+            Name = '🔰Items Hack',
             _Name = '8Items',
             Class = 'AddStackScriptNode',
             offset = 0x18,
             Enum = [[
-public const string Berry = "berry";
+		public const string Berry = "berry";
 	public const string BerryDrink = "berry_drink";
 	public const string MeatRaw = "meat_raw";
 	public const string MeatRoast = "meat_roast";
@@ -508,6 +539,9 @@ public const string Berry = "berry";
 	public const string Saltpetre = "saltpetre";
 	public const string Bowstring = "bowstring";
 	public const string Mech = "mech";
+	public const string KeyTd = "key_td";
+	public const string KeyDungeon01 = "key_dungeon_01";
+	public const string KeyDungeon02 = "key_dungeon_02";
 	public const string Pilers = "pilers";
 	public const string Bracelet = "bracelet";
 	public const string Clip = "clip";
@@ -525,6 +559,14 @@ public const string Berry = "berry";
 	public const string HorseBridle = "horse_bridle";
 	public const string HorseFeeder = "horse_feeder";
 	public const string WaggonAxle = "waggon_axle";
+	public const string Plan = "plan";
+	public const string PlanA = "plan_a";
+	public const string PlanB = "plan_b";
+	public const string PlanBoss01 = "plan_boss_01";
+	public const string PlanTemple = "plan_temple";
+	public const string PlanAnniversary = "plan_anniversary";
+	public const string PlanNormal = "plan_normal";
+	public const string PlanHard = "plan_hard";
 	public const string JunkHourglass = "junk_hourglass";
 	public const string JunkFibula = "junk_fibula";
 	public const string JunkRing = "junk_ring";
@@ -707,6 +749,11 @@ public const string Berry = "berry";
 	public const string Tattoo06 = "tattoo_06";
 	public const string Tattoo07 = "tattoo_07";
 	public const string Tattoo08 = "tattoo_08";
+	public const string Card1 = "card_1";
+	public const string Card2 = "card_2";
+	public const string PokerLevelReward1 = "poker_level_reward_1";
+	public const string PokerLevelReward2 = "poker_level_reward_2";
+	public const string XmasAmulet = "xmas_amulet";
 	public const string Wine = "wine";
 	public const string Tattoo09 = "tattoo_09";
 	public const string Tattoo10 = "tattoo_10";
@@ -2355,85 +2402,56 @@ public const string Berry = "berry";
 	public const string ResearchForMourningReaperGloves = "research_for_mourning_reaper_gloves";
 	public const string ResearchForMourningReaperPants = "research_for_mourning_reaper_pants";
 	public const string ResearchForMourningReaperBoots = "research_for_mourning_reaper_boots";
-
 	]],
         },
-		[9] = {
-		 Name = '👑 Instant Lvl 200',
-			_Name = '9EXP',
-			Method = 'get_amount',
-			Class = 'ExperienceResource',
-			Edit = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},
-			},
-		[10] = {
-			Name = '🏃 Fast Travel',
-			_Name = '10Travel',
-			Method = 'get_walkSpeed',
-			Class = 'MapMovement',
-			Edit = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},
-			  },
-		[11] = {
-				Name = '⚓️ Max Durability',
-				_Name = '11Dura',
-				Method = 'get_Durability',
-				Class = 'DurabilityInventoryStack',
-				Edit = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},
-			   },
-		[12] = {
-			Name = '💣 Attack Damage',
-			_Name = '12Dmg',
-			Method = 'GetWeaponDamageBonus',
-			Class = 'WeaponAttackActivity',
-			Edit = {[1] = '~A MOVW R0, #6666',[2] = '~A bx lr'},
-		},
-
-
+      
     },
+    
+    
     ['Engine'] = {
         MENU = {},
         FN = {},
         One = true,
-        Two = false,
 		alr = 1,
         update = function(self) 
-			info = gg.getTargetInfo()
             if self.One == true then
-				if info.x64 == true then gg.alert("This script meant for 32Bit users it wont work for you. \n Thank you for your understanding! \n \n ~ ARC") os.exit(); else
-               		gg.toast("♥ MADE BY ARC♥",true)
-
 				for i = 1,#ARC.Data do 
                 self.FN[ARC.Data[i]._Name] = ARC.Worker(ARC.Data[i])
                 self.MENU[ARC.Data[i]._Name] = self.FN[ARC.Data[i]._Name].Name..self.FN[ARC.Data[i]._Name].Status
 				end
                 self.One = false
-				
-					
-				end
             end
-            if self.Two == true then
                 for i,v in pairs(self.MENU) do
                     if tempMenu == nil then break; end
                     self.MENU[tempMenu] = self.FN[tempMenu].Name..self.FN[tempMenu].Status
                 end
-				
-
-            end
         end,
     },
+
 }
+Info = gg.getTargetInfo()
+OFFSET = function(offset)
+if Info.x64 == true then offset = offset * 0x2 return offset else return offset end
+end
+FLAG = function()
+if Info.x64 == true then  return gg.TYPE_QWORD else return gg.TYPE_DWORD end
+end
 gg.clearList()
 gg.clearResults()
 gg.showUiButton()
+title = function() if Info.x64 == true then return 'x64 Script (Beta)' else return 'x32 Script' end end
 while true do
 	ARC.Engine:update()
     if gg.isClickedUiButton() then
-        tempMenu = gg.choice(ARC.Engine.MENU,nil,nil)
+
+		tempMenu = gg.choice(ARC.Engine.MENU,nil,title())
         if tempMenu ~= nil then 
 			if tempMenu == '12Dmg' and ARC.Engine.alr == 1 then gg.alert('Please make sure to attack any enemy once.\n Otherwise the script will crash') ARC.Engine.alr = 0
 			else
-            ARC.Engine.Two = true
+      ARC.Engine.Two = true
 			ARC.Engine.FN[tempMenu]:Slave()
 			end
         end
     end
 end
+
