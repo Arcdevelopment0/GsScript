@@ -1,5 +1,6 @@
 
-ARC = {
+
+XEKEX = {
 	['SB'] = function(str)
 		local strtab = {}
 		for i = 1 , #str do
@@ -103,7 +104,7 @@ ARC = {
         local flag_type = FLAG()
         gg.setRanges(gg.REGION_OTHER)
                 gg.clearResults()
-                gg.searchNumber(ARC.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
+                gg.searchNumber(XEKEX.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
                 String_address = gg.getResults(1)
                 String_address = String_address[1].address
                 gg.clearResults()
@@ -116,12 +117,12 @@ ARC = {
                     class_headers_pointer[1].address =  class_headers_pointer[1].address - OFFSET(8)
                     class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = ARC.hex(class_headers_pointer[1].value,true)
+                    method_name_edit[1].address = XEKEX.hex(class_headers_pointer[1].value,true)
                 elseif gg.getResultsCount() > 1 then
                     for i, v in pairs(class_headers) do
                             class_headers[i].address = class_headers[i].address + OFFSET(4)
                             class_headers = gg.getValues(class_headers)
-                            class_headers[i].address = ARC.hex(class_headers[i].value + OFFSET(8) ,true)
+                            class_headers[i].address = XEKEX.hex(class_headers[i].value + OFFSET(8) ,true)
                             class_headers = gg.getValues(class_headers)
                             class_headers[i].address = class_headers[i].value
                             class_headers[i].flags = gg.TYPE_BYTE
@@ -141,7 +142,7 @@ ARC = {
                     class_headers_pointer[k].address =  class_headers_pointer[k].address - OFFSET(8) 
                     class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = ARC.hex(class_headers_pointer[k].value,true)
+                    method_name_edit[1].address = XEKEX.hex(class_headers_pointer[k].value,true)
                         end
                     end
                 end
@@ -157,7 +158,7 @@ ARC = {
 	['CH'] = function(class,offset) 
 		Result = {}
 		flag_type = FLAG()
-		FieldSearch = ARC.SB(class)
+		FieldSearch = XEKEX.SB(class)
 		gg.setRanges(gg.REGION_OTHER)
 		gg.clearResults()
 		gg.searchNumber(FieldSearch, gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
@@ -201,7 +202,7 @@ ARC = {
                   Slave = function(self) 
                     if self.temp == false then 
                       if self.val.Pointer == nil then
-                                  self.val.Pointer = ARC.MH(self.Method,self.Class,#self.val.Edit[OFFSET(1)]) 
+                                  self.val.Pointer = XEKEX.MH(self.Method,self.Class,#self.val.Edit[OFFSET(1)]) 
 								  self.val.Pointer = gg.getValues(self.val.Pointer)
 					  end
                                   for i=1,#self.val.Edit[OFFSET(1)] do 
@@ -251,9 +252,9 @@ ARC = {
                         if self.val.Temp_ == nil then
                         gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
                         if self.val.Item == nil then 
-                        self.val.Items = ARC.CL(self.val.Enum) end
+                        self.val.Items = XEKEX.CL(self.val.Enum) end
                         
-                        self.val.Temp_ = ARC.CH(self.Class,self.offset)
+                        self.val.Temp_ = XEKEX.CH(self.Class,self.offset)
 						self.val.Temp_ = gg.getValues(self.val.Temp_)
 						for k = 1, #self.val.Temp_ do 
 				
@@ -268,11 +269,11 @@ ARC = {
 						if Lowend == 1 then goto low else
                         for k,v in pairs(self.val.Temp_) do  
                         DumpedItem = {
-                            [1] = {address = ARC.hex(self.val.Temp_[k].value,true),
+                            [1] = {address = XEKEX.hex(self.val.Temp_[k].value,true),
                             flags = gg.TYPE_DWORD,
                             name = "START"},
                             [2]= {
-                            address = ARC.hex(self.val.Temp_[k].value + OFFSET(8) ,true) ,
+                            address = XEKEX.hex(self.val.Temp_[k].value + OFFSET(8) ,true) ,
                             flags = gg.TYPE_DWORD,}
                             }
                            DumpedItem = gg.getValues(DumpedItem)
@@ -287,12 +288,12 @@ ARC = {
                         DumpedItem = gg.getValues(DumpedItem)
                         local Item_name = {}
                         for i = 3,#DumpedItem do 
-                        Item_name[i-2] = ARC.DT(DumpedItem[i].value)
+                        Item_name[i-2] = XEKEX.DT(DumpedItem[i].value)
                         end
                         local iden = table.concat(Item_name)
                           for index,value in pairs(self.val.Items) do 
                             if self.val.Items[index].ID == iden and self.val.Items[index].Pointer == nil then
-                            self.val.Items[index].Pointer =  ARC.hex(self.val.Temp_[k].value,true)
+                            self.val.Items[index].Pointer =  XEKEX.hex(self.val.Temp_[k].value,true)
                             end
                           end
 							end
@@ -324,7 +325,7 @@ ARC = {
 									self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
                                   end
                         	 elseif Menu == 3 then 
-								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~ARC: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
+								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~XEKEX: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
                                     for k,v in pairs(self.val.Temp_) do 
                                         self.val.Temp_[k].value = self.val.Restore[k]
                                       end
@@ -340,12 +341,12 @@ ARC = {
                                     gg.toast(tostring(self.val.Items[ind].Mark) .. " Selected ♥")
                                     self.Status = ' ( '..self.val.Items[ind].Mark..' ) '
                                     if self.val.Items[ind].Pointer == nil then 
-                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..ARC.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
+                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..XEKEX.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
                                       local t = {}
                                       t = gg.getResults(1)
                                          t[1].address = t[1].address - OFFSET(8)
                                          gg.getValues(t)
-                                         self.val.Items[ind].Pointer = ARC.hex(t[1].address,false)
+                                         self.val.Items[ind].Pointer = XEKEX.hex(t[1].address,false)
                                          gg.clearList()
                                          gg.clearResults()
                                         end
@@ -368,49 +369,49 @@ ARC = {
         end,
     ['Data'] = {
         [1] = {
-            Name = '🎁 x20 Stacks',
+            Name = '🎁x20 Stacks',
             _Name = '1Stack',
             Method = 'ChangeAmount',
             Class = 'LimitedInventoryStack',
             Edit = {[1] = {[1] = '~A mvn r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 mvn W0, #1',[2] = '~A8 RET',}},
               },
         [2] = {
-            Name = '⚒️ Crafting Cheat',
+            Name = '⚒️Crafting Cheat',
             _Name = '2Craft',
             Method = 'get_canCraft',
             Class = 'Research',
             Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [3] = {
-            Name = '✂️ Split Weapons',
+            Name = '✂️Split Weapons',
             _Name = '3Sp',
             Method = 'CanSplit',
             Class = 'InventorySet',
             Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [4] = {
-            Name = '🛡 Free Assemble (NOT SAFE)',
+            Name = '🛡 Free Assemble',
             _Name = '4Assemble',
             Method = 'CanComplete',
             Class = 'BuildingCollection',
             Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [5] = {
-            Name = '🌐 Unlock Maps',
+            Name = '🌐Unlock Maps',
             _Name = '5Maps',
             Method = 'get_isVisible',
             Class = 'MapPointPresenter',
             Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [6] = {
-            Name = '🗂 Unlock Blueprints',
+            Name = '🗂Unlock Blueprints',
             _Name = '6BP',
             Method = 'get_isLocked',
             Class = 'Research',
             Edit = {[1] = {[1] = '~A mov r0, #0',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, WZR',[2] = '~A8 RET',}},
               },
         [7] = {
-            Name = '🧰 Free Upgrade Tier (CAN CURRUPT YOUR DATA)',
+            Name = '🛡Free Upgrade Tier',
             _Name = '7Assembly_v1',
             Method = 'CanUpgrade',
             Class = 'ConstructionTierModel',
@@ -422,7 +423,7 @@ ARC = {
             Class = 'AddStackScriptNode',
             offset = 0x18,
             Enum = [[
-            public const string Berry = "berry";
+	              public const string Berry = "berry";
 	public const string BerryDrink = "berry_drink";
 	public const string MeatRaw = "meat_raw";
 	public const string MeatRoast = "meat_roast";
@@ -2284,30 +2285,30 @@ ARC = {
 	public const string ResearchForMourningReaperPants = "research_for_mourning_reaper_pants";
 	public const string ResearchForMourningReaperBoots = "research_for_mourning_reaper_boots";
 	
-   ]],
+            ]],
         },
-		--[9] = {
-			--Name = 'Instant Lvl 200',
-			--_Name = '9EXP',
-			--Method = 'get_amount',
-			--Class = 'ExperienceResource',
-			--Edit = {[1] = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #19156',[2] = '~A8 MOV W1,  #22418',[3] = '~A8 MUL W0, W0, W1',[4] = '~A8 MOV W1,  #63992',[5] = '~A8 ADD W0, W0, W1',[6] = '~A8 SCVTF D0, W0',[7] = 'C0035FD6r',
-		--},}
-			--  },
+		[9] = {
+			Name = '👑Instant Lvl 200',
+			_Name = '9EXP',
+			Method = 'get_amount',
+			Class = 'ExperienceResource',
+			Edit = {[1] = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #19156',[2] = '~A8 MOV W1,  #22418',[3] = '~A8 MUL W0, W0, W1',[4] = '~A8 MOV W1,  #63992',[5] = '~A8 ADD W0, W0, W1',[6] = '~A8 SCVTF D0, W0',[7] = 'C0035FD6r',
+		},}
+			  },
 		[10] = {
-			Name = '🏃 Fast Travel',
+			Name = '🏃Instant Travel',
 			_Name = '10Travel',
 			Method = 'get_walkSpeed',
 			Class = 'MapMovement',
 			Edit = {[1] = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #666',[2] = '0000271Er',[3] = '00D8215Er',[4] = '0000261Er',[5] = 'C0035FD6r',},},},
 		[11] = {
-				Name = '🗿 Max Durability',
+				Name = '🗿Unlimited Durability',
 				_Name = '11Dura',
 				Method = 'get_Durability',
 				Class = 'DurabilityInventoryStack',
 				Edit = {[1] = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #999',[2] = '~A8 SCVTF D0, W0',[3] = 'C0035FD6r',},},},
 		[12] = {
-			Name = '💣 Attack Damage',
+			Name = '🗡Attack Damage',
 			_Name = '12Dmg',
 			Method = 'GetWeaponDamageBonus',
 			Class = 'WeaponAttackActivity',
@@ -2320,9 +2321,9 @@ ARC = {
 		alr = 1,
         update = function(self) 
             if self.One == true then
-				for i = 1,#ARC.Data do 
-                self.FN[ARC.Data[i]._Name] = ARC.Worker(ARC.Data[i])
-                self.MENU[ARC.Data[i]._Name] = self.FN[ARC.Data[i]._Name].Name..self.FN[ARC.Data[i]._Name].Status
+				for i = 1,#XEKEX.Data do 
+                self.FN[XEKEX.Data[i]._Name] = XEKEX.Worker(XEKEX.Data[i])
+                self.MENU[XEKEX.Data[i]._Name] = self.FN[XEKEX.Data[i]._Name].Name..self.FN[XEKEX.Data[i]._Name].Status
 				end
                 self.One = false
             end
@@ -2346,15 +2347,15 @@ gg.clearResults()
 gg.showUiButton()
 title = function() if Info.x64 == true then return 'x64 Script (Beta)' else return 'x32 Script' end end
 while true do
-	ARC.Engine:update()
+	XEKEX.Engine:update()
     if gg.isClickedUiButton() then
 
-		tempMenu = gg.choice(ARC.Engine.MENU,nil,title())
+		tempMenu = gg.choice(XEKEX.Engine.MENU,nil,title())
         if tempMenu ~= nil then 
-			if tempMenu == '12Dmg' and ARC.Engine.alr == 1 then gg.alert('Please make sure to attack any enemy once.\n Otherwise the script will crash') ARC.Engine.alr = 0
+			if tempMenu == '12Dmg' and XEKEX.Engine.alr == 1 then gg.alert('Please make sure to attack any enemy once.\n Otherwise the script will crash') XEKEX.Engine.alr = 0
 			else
-      ARC.Engine.Two = true
-			ARC.Engine.FN[tempMenu]:Slave()
+      XEKEX.Engine.Two = true
+			XEKEX.Engine.FN[tempMenu]:Slave()
 			end
         end
     end
