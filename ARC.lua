@@ -389,7 +389,7 @@ ARC = {
             Edit = {[1] = {[1] = '~A mov r0, #1',[2] = '~A bx lr'},[2]={[1] = '~A8 MOV W0, #1',[2] = '~A8 RET',}},
               },
         [4] = {
-            Name = '🧲 Free Assemble (NOT SAFE)',
+            Name = '🛡 Free Assemble (NOT SAFE)',
             _Name = '4Assemble',
             Method = 'CanComplete',
             Class = 'BuildingCollection',
@@ -2286,28 +2286,28 @@ ARC = {
 	
    ]],
         },
-		[9] = {
-			Name = 'Instant Lvl 200',
-			_Name = '9EXP',
-			Method = 'get_amount',
-			Class = 'ExperienceResource',
-			Edit = {[1] = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #19156',[2] = '~A8 MOV W1,  #22418',[3] = '~A8 MUL W0, W0, W1',[4] = '~A8 MOV W1,  #63992',[5] = '~A8 ADD W0, W0, W1',[6] = '~A8 SCVTF D0, W0',[7] = 'C0035FD6r',
-		},}
-			  },
+		--[9] = {
+			--Name = 'Instant Lvl 200',
+			--_Name = '9EXP',
+			--Method = 'get_amount',
+			--Class = 'ExperienceResource',
+			--Edit = {[1] = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #19156',[2] = '~A8 MOV W1,  #22418',[3] = '~A8 MUL W0, W0, W1',[4] = '~A8 MOV W1,  #63992',[5] = '~A8 ADD W0, W0, W1',[6] = '~A8 SCVTF D0, W0',[7] = 'C0035FD6r',
+		--},}
+			--  },
 		[10] = {
-			Name = 'Instant Travel',
+			Name = '🏃 Fast Travel',
 			_Name = '10Travel',
 			Method = 'get_walkSpeed',
 			Class = 'MapMovement',
 			Edit = {[1] = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #666',[2] = '0000271Er',[3] = '00D8215Er',[4] = '0000261Er',[5] = 'C0035FD6r',},},},
 		[11] = {
-				Name = 'Unlimited Durability',
+				Name = '🗿 Max Durability',
 				_Name = '11Dura',
 				Method = 'get_Durability',
 				Class = 'DurabilityInventoryStack',
 				Edit = {[1] = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #999',[2] = '~A8 SCVTF D0, W0',[3] = 'C0035FD6r',},},},
 		[12] = {
-			Name = 'Attack Damage',
+			Name = '💣 Attack Damage',
 			_Name = '12Dmg',
 			Method = 'GetWeaponDamageBonus',
 			Class = 'WeaponAttackActivity',
