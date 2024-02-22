@@ -1,10 +1,5 @@
---[[
-	This Script was written by XEKEX and belong to XEKEX any modification won't make the script work ty for your understanding.
-	if you want to copy / understand the script please contact me on GameGuardian Forum : 
-	https://gameguardian.net/forum/profile/1258371-xekex/
-]]--
 
-XEKEX = {
+ARC = {
 	['SB'] = function(str)
 		strtab = {}
 		for i = 1 , #str do
@@ -110,7 +105,7 @@ XEKEX = {
         flag_type = gg.TYPE_DWORD
         gg.setRanges(gg.REGION_OTHER)
                 gg.clearResults()
-                gg.searchNumber(XEKEX.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
+                gg.searchNumber(ARC.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
                 String_address = gg.getResults(1)
                 String_address = String_address[1].address
                 gg.clearResults()
@@ -122,12 +117,12 @@ XEKEX = {
                     class_headers_pointer[1].address =  class_headers_pointer[1].address - 8 
                     class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = XEKEX.hex(class_headers_pointer[1].value,true)
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[1].value,true)
                 elseif gg.getResultsCount() > 1 then
                     for i, v in pairs(class_headers) do
                             class_headers[i].address = class_headers[i].address + 4
                             class_headers = gg.getValues(class_headers)
-                            class_headers[i].address = XEKEX.hex(class_headers[i].value + 8 ,true)
+                            class_headers[i].address = ARC.hex(class_headers[i].value + 8 ,true)
                             class_headers = gg.getValues(class_headers)
                             class_headers[i].address = class_headers[i].value
                             class_headers[i].flags = gg.TYPE_BYTE
@@ -147,7 +142,7 @@ XEKEX = {
                     class_headers_pointer[k].address =  class_headers_pointer[k].address - 8 
                     class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = XEKEX.hex(class_headers_pointer[k].value,true)
+                    method_name_edit[1].address = ARC.hex(class_headers_pointer[k].value,true)
 
                         end
                     end
@@ -162,7 +157,7 @@ XEKEX = {
 	['CH'] = function(class,offset) 
 		Result = {}
 		flag_type = gg.TYPE_DWORD
-		FieldSearch = XEKEX.SB(class)
+		FieldSearch = ARC.SB(class)
 		gg.setRanges(gg.REGION_OTHER)
 		gg.clearResults()
 		gg.searchNumber(FieldSearch, gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
@@ -204,7 +199,7 @@ XEKEX = {
                   Slave = function(self) 
                     if self.temp == false then 
                       if self.val.Pointer == nil then
-                                  self.val.Pointer = XEKEX.MH(self.Method,self.Class,#self.val.Edit) 
+                                  self.val.Pointer = ARC.MH(self.Method,self.Class,#self.val.Edit) 
 								  self.val.Pointer = gg.getValues(self.val.Pointer)
 					  end
                                   for i=1,#self.val.Edit do 
@@ -254,9 +249,9 @@ XEKEX = {
                         if self.val.Temp_ == nil then
                         gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
                         if self.val.Item == nil then 
-                        self.val.Items = XEKEX.CL(self.val.Enum) end
+                        self.val.Items = ARC.CL(self.val.Enum) end
                         
-                        self.val.Temp_ = XEKEX.CH(self.Class,tonumber(self.offset))
+                        self.val.Temp_ = ARC.CH(self.Class,tonumber(self.offset))
 						self.val.Temp_ = gg.getValues(self.val.Temp_)
 						for k = 1, #self.val.Temp_ do 
 							self.val.Restore[k] = self.val.Temp_[k].value
@@ -265,11 +260,11 @@ XEKEX = {
                         gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
                         for k,v in pairs(self.val.Temp_) do 
                         DumpedItem = {
-                            [1] = {address = XEKEX.hex(self.val.Temp_[k].value,true),
+                            [1] = {address = ARC.hex(self.val.Temp_[k].value,true),
                             flags = gg.TYPE_DWORD,
                             name = "START"},
                             [2]= {
-                            address = XEKEX.hex(self.val.Temp_[k].value + 0x8 ,true) ,
+                            address = ARC.hex(self.val.Temp_[k].value + 0x8 ,true) ,
                             flags = gg.TYPE_DWORD,}
                             }
                            DumpedItem = gg.getValues(DumpedItem)
@@ -284,12 +279,12 @@ XEKEX = {
                         DumpedItem = gg.getValues(DumpedItem)
                         local Item_name = {}
                         for i = 3,#DumpedItem do 
-                        Item_name[i-2] = XEKEX.DT(DumpedItem[i].value)
+                        Item_name[i-2] = ARC.DT(DumpedItem[i].value)
                         end
                         local iden = table.concat(Item_name)
                           for index,value in pairs(self.val.Items) do 
                             if self.val.Items[index].ID == iden and self.val.Items[index].Pointer == nil then
-                            self.val.Items[index].Pointer =  XEKEX.hex(self.val.Temp_[k].value,true)
+                            self.val.Items[index].Pointer =  ARC.hex(self.val.Temp_[k].value,true)
                             end
                           end
                         end
@@ -318,7 +313,7 @@ XEKEX = {
 									self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
                                   end
                         	 elseif Menu == 3 then 
-								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~XEKEX: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
+								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~ARC: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
                                     for k,v in pairs(self.val.Temp_) do 
                                         self.val.Temp_[k].value = self.val.Restore[k]
                                       end
@@ -334,12 +329,12 @@ XEKEX = {
                                     gg.toast(tostring(self.val.Items[ind].Mark) .. " Selected ♥")
                                     self.Status = ' ( '..self.val.Items[ind].Mark..' ) '
                                     if self.val.Items[ind].Pointer == nil then 
-                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..XEKEX.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
+                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..ARC.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
                                       local t = {}
                                       t = gg.getResults(1)
                                          t[1].address = t[1].address - 0x8
                                          gg.getValues(t)
-                                         self.val.Items[ind].Pointer = XEKEX.hex(t[1].address,false)
+                                         self.val.Items[ind].Pointer = ARC.hex(t[1].address,false)
                                          gg.clearList()
                                          gg.clearResults()
                                         end
@@ -2403,12 +2398,12 @@ public const string Berry = "berry";
         update = function(self) 
 			info = gg.getTargetInfo()
             if self.One == true then
-				if info.x64 == true then gg.alert("This script meant for 32Bit users it wont work for you. \n Thank you for your understanding! \n \n ~ XEKEX") os.exit(); else
+				if info.x64 == true then gg.alert("This script meant for 32Bit users it wont work for you. \n Thank you for your understanding! \n \n ~ ARC") os.exit(); else
                		gg.toast("♥ Made by Arc ♥",true)
 
-				for i = 1,#XEKEX.Data do 
-                self.FN[XEKEX.Data[i]._Name] = XEKEX.Worker(XEKEX.Data[i])
-                self.MENU[XEKEX.Data[i]._Name] = self.FN[XEKEX.Data[i]._Name].Name..self.FN[XEKEX.Data[i]._Name].Status
+				for i = 1,#ARC.Data do 
+                self.FN[ARC.Data[i]._Name] = ARC.Worker(ARC.Data[i])
+                self.MENU[ARC.Data[i]._Name] = self.FN[ARC.Data[i]._Name].Name..self.FN[ARC.Data[i]._Name].Status
 				end
                 self.One = false
 				
@@ -2430,14 +2425,14 @@ gg.clearList()
 gg.clearResults()
 gg.showUiButton()
 while true do
-	XEKEX.Engine:update()
+	ARC.Engine:update()
     if gg.isClickedUiButton() then
-        tempMenu = gg.choice(XEKEX.Engine.MENU,nil,nil)
+        tempMenu = gg.choice(ARC.Engine.MENU,nil,nil)
         if tempMenu ~= nil then 
-			if tempMenu == '12Dmg' and XEKEX.Engine.alr == 1 then gg.alert('Please make sure to attack any enemy once.\n Otherwise the script will crash') XEKEX.Engine.alr = 0
+			if tempMenu == '12Dmg' and ARC.Engine.alr == 1 then gg.alert('Please make sure to attack any enemy once.\n Otherwise the script will crash') ARC.Engine.alr = 0
 			else
-            XEKEX.Engine.Two = true
-			XEKEX.Engine.FN[tempMenu]:Slave()
+            ARC.Engine.Two = true
+			ARC.Engine.FN[tempMenu]:Slave()
 			end
         end
     end
