@@ -1,5 +1,10 @@
+--[[
+	This Script was written by XEKEX and belong to XEKEX any modification won't make the script work ty for your understanding.
+	if you want to copy / understand the script please contact me on GameGuardian Forum : 
+	https://gameguardian.net/forum/profile/1258371-xekex/
+]]--
 
-ARCEXE = {
+XEKEX = {
 	['SB'] = function(str)
 		strtab = {}
 		for i = 1 , #str do
@@ -41,7 +46,7 @@ ARCEXE = {
     return result[1] 
     end,
 	['CL'] = function(str)
-	local s = string.gsub(str, "	public const string ", '')
+	local s = string.gsub(str, "public const string ", '')
 	local s_ = string.gsub(s, " = ", "\n")
 	local s__ = string.gsub(s_, ";", "")
 	local _s = string.gsub(s__, '"', "")
@@ -105,7 +110,7 @@ ARCEXE = {
         flag_type = gg.TYPE_DWORD
         gg.setRanges(gg.REGION_OTHER)
                 gg.clearResults()
-                gg.searchNumber(ARCEXE.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
+                gg.searchNumber(XEKEX.SB(method_name), gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
                 String_address = gg.getResults(1)
                 String_address = String_address[1].address
                 gg.clearResults()
@@ -117,12 +122,12 @@ ARCEXE = {
                     class_headers_pointer[1].address =  class_headers_pointer[1].address - 8 
                     class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = ARCEXE.hex(class_headers_pointer[1].value,true)
+                    method_name_edit[1].address = XEKEX.hex(class_headers_pointer[1].value,true)
                 elseif gg.getResultsCount() > 1 then
                     for i, v in pairs(class_headers) do
                             class_headers[i].address = class_headers[i].address + 4
                             class_headers = gg.getValues(class_headers)
-                            class_headers[i].address = ARCEXE.hex(class_headers[i].value + 8 ,true)
+                            class_headers[i].address = XEKEX.hex(class_headers[i].value + 8 ,true)
                             class_headers = gg.getValues(class_headers)
                             class_headers[i].address = class_headers[i].value
                             class_headers[i].flags = gg.TYPE_BYTE
@@ -142,7 +147,7 @@ ARCEXE = {
                     class_headers_pointer[k].address =  class_headers_pointer[k].address - 8 
                     class_headers_pointer = gg.getValues(class_headers_pointer)
 
-                    method_name_edit[1].address = ARCEXE.hex(class_headers_pointer[k].value,true)
+                    method_name_edit[1].address = XEKEX.hex(class_headers_pointer[k].value,true)
 
                         end
                     end
@@ -157,7 +162,7 @@ ARCEXE = {
 	['CH'] = function(class,offset) 
 		Result = {}
 		flag_type = gg.TYPE_DWORD
-		FieldSearch = ARCEXE.SB(class)
+		FieldSearch = XEKEX.SB(class)
 		gg.setRanges(gg.REGION_OTHER)
 		gg.clearResults()
 		gg.searchNumber(FieldSearch, gg.TYPE_BYTE, false, gg.SIGN_EQUAL,nil,nil,1)
@@ -199,7 +204,7 @@ ARCEXE = {
                   Slave = function(self) 
                     if self.temp == false then 
                       if self.val.Pointer == nil then
-                                  self.val.Pointer = ARCEXE.MH(self.Method,self.Class,#self.val.Edit) 
+                                  self.val.Pointer = XEKEX.MH(self.Method,self.Class,#self.val.Edit) 
 								  self.val.Pointer = gg.getValues(self.val.Pointer)
 					  end
                                   for i=1,#self.val.Edit do 
@@ -249,9 +254,9 @@ ARCEXE = {
                         if self.val.Temp_ == nil then
                         gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
                         if self.val.Item == nil then 
-                        self.val.Items = ARCEXE.CL(self.val.Enum) end
+                        self.val.Items = XEKEX.CL(self.val.Enum) end
                         
-                        self.val.Temp_ = ARCEXE.CH(self.Class,tonumber(self.offset))
+                        self.val.Temp_ = XEKEX.CH(self.Class,tonumber(self.offset))
 						self.val.Temp_ = gg.getValues(self.val.Temp_)
 						for k = 1, #self.val.Temp_ do 
 							self.val.Restore[k] = self.val.Temp_[k].value
@@ -260,11 +265,11 @@ ARCEXE = {
                         gg.toast('⌛ Please wait configuring Script it may take a while ... ⌛')
                         for k,v in pairs(self.val.Temp_) do 
                         DumpedItem = {
-                            [1] = {address = ARCEXE.hex(self.val.Temp_[k].value,true),
+                            [1] = {address = XEKEX.hex(self.val.Temp_[k].value,true),
                             flags = gg.TYPE_DWORD,
                             name = "START"},
                             [2]= {
-                            address = ARCEXE.hex(self.val.Temp_[k].value + 0x8 ,true) ,
+                            address = XEKEX.hex(self.val.Temp_[k].value + 0x8 ,true) ,
                             flags = gg.TYPE_DWORD,}
                             }
                            DumpedItem = gg.getValues(DumpedItem)
@@ -279,12 +284,12 @@ ARCEXE = {
                         DumpedItem = gg.getValues(DumpedItem)
                         local Item_name = {}
                         for i = 3,#DumpedItem do 
-                        Item_name[i-2] = ARCEXE.DT(DumpedItem[i].value)
+                        Item_name[i-2] = XEKEX.DT(DumpedItem[i].value)
                         end
                         local iden = table.concat(Item_name)
                           for index,value in pairs(self.val.Items) do 
                             if self.val.Items[index].ID == iden and self.val.Items[index].Pointer == nil then
-                            self.val.Items[index].Pointer =  ARCEXE.hex(self.val.Temp_[k].value,true)
+                            self.val.Items[index].Pointer =  XEKEX.hex(self.val.Temp_[k].value,true)
                             end
                           end
                         end
@@ -313,7 +318,7 @@ ARCEXE = {
 									self.val.Menu[i] = self.val.Items[i].FS..self.val.Items[i].Mark 
                                   end
                         	 elseif Menu == 3 then 
-								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~ARCEXE: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
+								if self.val.Restore[1] == self.val.Restore[666] then gg.alert('~XEKEX: SORRY !\nRestore failed to load. \nif You want to restore Items please Restart the game.') else
                                     for k,v in pairs(self.val.Temp_) do 
                                         self.val.Temp_[k].value = self.val.Restore[k]
                                       end
@@ -329,12 +334,12 @@ ARCEXE = {
                                     gg.toast(tostring(self.val.Items[ind].Mark) .. " Selected ♥")
                                     self.Status = ' ( '..self.val.Items[ind].Mark..' ) '
                                     if self.val.Items[ind].Pointer == nil then 
-                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..ARCEXE.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
+                                      gg.searchNumber(tostring(#self.val.Items[ind].ID)..';'..XEKEX.TD(self.val.Items[ind].ID,true), gg.TYPE_DWORD, false, gg.SIGN_EQUAL,nil,nil,1)
                                       local t = {}
                                       t = gg.getResults(1)
                                          t[1].address = t[1].address - 0x8
                                          gg.getValues(t)
-                                         self.val.Items[ind].Pointer = ARCEXE.hex(t[1].address,false)
+                                         self.val.Items[ind].Pointer = XEKEX.hex(t[1].address,false)
                                          gg.clearList()
                                          gg.clearResults()
                                         end
@@ -357,89 +362,61 @@ ARCEXE = {
         end,
     ['Data'] = {
         [1] = {
-            Name = '🎁 x99 Stacks',
+            Name = '🎁x99 Stacks',
             _Name = '1Stack',
             Method = 'get__amount',
             Class = 'LimitedInventoryStack',
             Edit = {[1] = '~A mov r0, #99',[2] = '~A bx lr'},
               },
         [2] = {
-            Name = '👑 Crafting Cheat',
+            Name = '⚒️Crafting Cheat',
             _Name = '2Craft',
             Method = 'get_canCraft',
             Class = 'Research',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR'},
               },
         [3] = {
-            Name = '✂ Split Weapons',
+            Name = '✂️Split Weapons',
             _Name = '3Sp',
             Method = 'CanSplit',
             Class = 'InventorySet',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
         [4] = {
-            Name = '❗Auto Assemble (NOT FULLY SAFE)',
+            Name = '🧰 Free Assemble',
             _Name = '4Assemble',
             Method = 'CanComplete',
             Class = 'BuildingCollection',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
         [5] = {
-            Name = '🔓 Unlock Maps',
+            Name = '🌐Unlock Maps',
             _Name = '5Maps',
             Method = 'get_isVisible',
             Class = 'MapPointPresenter',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
         [6] = {
-            Name = '📝 Unlock Blueprints',
+            Name = '📜Unlock Blueprints',
             _Name = '6BP',
             Method = 'get_isLocked',
             Class = 'Research',
             Edit = {[1] = '~A MOV R0, #0',[2] = '~A BX LR',},
               },
         [7] = {
-            Name = '❗Free Upgrade Tier (NOT SAFE)',
+            Name = '🛡Free Upgrade Tier',
             _Name = '7Assembly_v1',
             Method = 'CanUpgrade',
             Class = 'ConstructionTierModel',
             Edit = {[1] = '~A MOV R0, #1',[2] = '~A BX LR',},
               },
-              	[9] = {
-			Name = '🏆 Instant Lvl 200',
-			_Name = '9EXP',
-			Method = 'get_amount',
-			Class = 'ExperienceResource',
-			Edit = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},
-			  },
-		[10] = {
-			Name = '🏃 Instant Travel',
-			_Name = '10Travel',
-			Method = 'get_walkSpeed',
-			Class = 'MapMovement',
-			Edit = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},
-			  },
-		[11] = {
-				Name = '👊 Unlimited Durability',
-				_Name = '11Dura',
-				Method = 'get_Durability',
-				Class = 'DurabilityInventoryStack',
-				Edit = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},
-			   },
-		[12] = {
-			Name = '💣Attack Damage',
-			_Name = '12Dmg',
-			Method = 'GetWeaponDamageBonus',
-			Class = 'WeaponAttackActivity',
-			Edit = {[1] = '~A MOVW R0, #6666',[2] = '~A bx lr'},
-		},
         [8] = {
-            Name = '🔰Items Hack',
+            Name = '🔎Items Hack',
             _Name = '8Items',
             Class = 'AddStackScriptNode',
             offset = 0x18,
             Enum = [[
-		public const string Berry = "berry";
+public const string Berry = "berry";
 	public const string BerryDrink = "berry_drink";
 	public const string MeatRaw = "meat_raw";
 	public const string MeatRoast = "meat_roast";
@@ -536,9 +513,6 @@ ARCEXE = {
 	public const string Saltpetre = "saltpetre";
 	public const string Bowstring = "bowstring";
 	public const string Mech = "mech";
-	public const string KeyTd = "key_td";
-	public const string KeyDungeon01 = "key_dungeon_01";
-	public const string KeyDungeon02 = "key_dungeon_02";
 	public const string Pilers = "pilers";
 	public const string Bracelet = "bracelet";
 	public const string Clip = "clip";
@@ -556,14 +530,6 @@ ARCEXE = {
 	public const string HorseBridle = "horse_bridle";
 	public const string HorseFeeder = "horse_feeder";
 	public const string WaggonAxle = "waggon_axle";
-	public const string Plan = "plan";
-	public const string PlanA = "plan_a";
-	public const string PlanB = "plan_b";
-	public const string PlanBoss01 = "plan_boss_01";
-	public const string PlanTemple = "plan_temple";
-	public const string PlanAnniversary = "plan_anniversary";
-	public const string PlanNormal = "plan_normal";
-	public const string PlanHard = "plan_hard";
 	public const string JunkHourglass = "junk_hourglass";
 	public const string JunkFibula = "junk_fibula";
 	public const string JunkRing = "junk_ring";
@@ -746,11 +712,6 @@ ARCEXE = {
 	public const string Tattoo06 = "tattoo_06";
 	public const string Tattoo07 = "tattoo_07";
 	public const string Tattoo08 = "tattoo_08";
-	public const string Card1 = "card_1";
-	public const string Card2 = "card_2";
-	public const string PokerLevelReward1 = "poker_level_reward_1";
-	public const string PokerLevelReward2 = "poker_level_reward_2";
-	public const string XmasAmulet = "xmas_amulet";
 	public const string Wine = "wine";
 	public const string Tattoo09 = "tattoo_09";
 	public const string Tattoo10 = "tattoo_10";
@@ -2399,9 +2360,39 @@ ARCEXE = {
 	public const string ResearchForMourningReaperGloves = "research_for_mourning_reaper_gloves";
 	public const string ResearchForMourningReaperPants = "research_for_mourning_reaper_pants";
 	public const string ResearchForMourningReaperBoots = "research_for_mourning_reaper_boots";
+
 	]],
         },
-      
+		--[9] = {
+			--Name = '👑 Instant Lvl 200',
+			--_Name = '9EXP',
+			--Method = 'get_amount',
+			--Class = 'ExperienceResource',
+			--Edit = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},
+			--  },
+		[10] = {
+			Name = '🏃 Fast Travel',
+			_Name = '10Travel',
+			Method = 'get_walkSpeed',
+			Class = 'MapMovement',
+			Edit = {[1] = '~A MOVW R0, #666',[2] = '100A00EEr',[3] = 'C00AB8EEr',[4] = '100A10EEr',[5] = '1EFF2FE1r',},
+			  },
+		[11] = {
+				Name = '⚓️ Max Durability',
+				_Name = '11Dura',
+				Method = 'get_Durability',
+				Class = 'DurabilityInventoryStack',
+				Edit = {[1] = '~A MOVW R0, #999',[2] = '~A VMOV S0, R0',[3] = '~A VCVT.F64.U32 D0, S0',[4] = '~A VMOV R0, R1, D0',[5] = '1EFF2FE1r',},
+			   },
+		[12] = {
+			Name = '💣 Attack Damage',
+			_Name = '12Dmg',
+			Method = 'GetWeaponDamageBonus',
+			Class = 'WeaponAttackActivity',
+			Edit = {[1] = '~A MOVW R0, #6666',[2] = '~A bx lr'},
+		},
+
+
     },
     ['Engine'] = {
         MENU = {},
@@ -2412,12 +2403,12 @@ ARCEXE = {
         update = function(self) 
 			info = gg.getTargetInfo()
             if self.One == true then
-				if info.x64 == true then gg.alert("This script meant for 32Bit users it wont work for you. \n Thank you for your understanding! \n \n ~ ARCEXE") os.exit(); else
-               		gg.toast("♥ You are using ARC SCRIPT♥",true)
+				if info.x64 == true then gg.alert("This script meant for 32Bit users it wont work for you. \n Thank you for your understanding! \n \n ~ XEKEX") os.exit(); else
+               		gg.toast("♥ Made by Arc ♥",true)
 
-				for i = 1,#ARCEXE.Data do 
-                self.FN[ARCEXE.Data[i]._Name] = ARCEXE.Worker(ARCEXE.Data[i])
-                self.MENU[ARCEXE.Data[i]._Name] = self.FN[ARCEXE.Data[i]._Name].Name..self.FN[ARCEXE.Data[i]._Name].Status
+				for i = 1,#XEKEX.Data do 
+                self.FN[XEKEX.Data[i]._Name] = XEKEX.Worker(XEKEX.Data[i])
+                self.MENU[XEKEX.Data[i]._Name] = self.FN[XEKEX.Data[i]._Name].Name..self.FN[XEKEX.Data[i]._Name].Status
 				end
                 self.One = false
 				
@@ -2439,14 +2430,14 @@ gg.clearList()
 gg.clearResults()
 gg.showUiButton()
 while true do
-	ARCEXE.Engine:update()
+	XEKEX.Engine:update()
     if gg.isClickedUiButton() then
-        tempMenu = gg.choice(ARCEXE.Engine.MENU,nil,nil)
+        tempMenu = gg.choice(XEKEX.Engine.MENU,nil,nil)
         if tempMenu ~= nil then 
-			if tempMenu == '12Dmg' and ARCEXE.Engine.alr == 1 then gg.alert('Please make sure to attack any enemy once.\n Otherwise the script will crash') ARCEXE.Engine.alr = 0
+			if tempMenu == '12Dmg' and XEKEX.Engine.alr == 1 then gg.alert('Please make sure to attack any enemy once.\n Otherwise the script will crash') XEKEX.Engine.alr = 0
 			else
-            ARCEXE.Engine.Two = true
-			ARCEXE.Engine.FN[tempMenu]:Slave()
+            XEKEX.Engine.Two = true
+			XEKEX.Engine.FN[tempMenu]:Slave()
 			end
         end
     end
