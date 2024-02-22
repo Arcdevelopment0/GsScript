@@ -2358,13 +2358,13 @@ public const string Berry = "berry";
 
 	]],
         },
-		--[9] = {
-			--Name = '👑 Instant Lvl 200',
-			--_Name = '9EXP',
-			--Method = 'get_amount',
-			--Class = 'ExperienceResource',
-			--Edit = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},
-			--  },
+		[9] = {
+		 Name = '👑 Instant Lvl 200',
+			_Name = '9EXP',
+			Method = 'get_amount',
+			Class = 'ExperienceResource',
+			Edit = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},
+			},
 		[10] = {
 			Name = '🏃 Fast Travel',
 			_Name = '10Travel',
