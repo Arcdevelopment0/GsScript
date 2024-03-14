@@ -719,7 +719,6 @@ ARC = {
 	public const string EventMapTrader = "event_map_trader";
 	public const string TubeNormal = "tube_normal";
 	public const string TubeRare = "tube_rare";
-	public const string TubeUnique = "tube_unique";
 	public const string EventMapDeadman = "event_map_deadman";
 	public const string EventMapTdChestLocation = "event_map_td.chest.location";
 	public const string EventMapWaggon = "event_map_waggon";
