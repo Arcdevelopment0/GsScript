@@ -56,7 +56,7 @@ ARC = {
       Final[k]['Pointer'] = nil
       Final[k]['FS'] = ''
       Final[k].update = function(self)
-        if self.Pointer ~= nil then self.FS = 'Fast 》' else
+        if self.Pointer ~= nil then self.FS = 'Fast 》  ' else
         self.FS = 'Slow 》  '
         end
       end
