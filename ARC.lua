@@ -2568,14 +2568,14 @@ ARC = {
 	public const string ResearchForStrongCudgel = "research_for_strong_cudgel";
                     ]],
         },
-	 [9] = {
-		Name = 'Instant Lvl 200',
-		_Name = '9EXP',
-			Method = 'get_amount',
-			Class = 'ExperienceResource',
-			Edit = {[1] = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #19156',[2] = '~A8 MOV W1,  #22418',[3] = '~A8 MUL W0, W0, W1',[4] = '~A8 MOV W1,  #63992',[5] = '~A8 ADD W0, W0, W1',[6] = '~A8 SCVTF D0, W0',[7] = 'C0035FD6r',
-		},}
-			  },
+	 --[9] = {
+	--	Name = 'Instant Lvl 200',
+--		_Name = '9EXP',
+--			Method = 'get_amount',
+---			Class = 'ExperienceResource',
+	--		Edit = {[1] = {[1] = '~A MOVW R0, #19156',[2] = '~A MOVW R1,  #22418',[3] = '~A MUL R0, R0, R1',[4] = '~A MOVW R1,  #63992',[5] = '~A ADD R1, R0, R1',[6] = '~A VMOV S0, R0',[7] = '~A VCVT.F64.U32 D0, S0',[8] = '~A VMOV R0, R1, D0',[9] = '1EFF2FE1r',},[2] = {[1] = '~A8 MOV W0, #19156',[2] = '~A8 MOV W1,  #22418',[3] = '~A8 MUL W0, W0, W1',[4] = '~A8 MOV W1,  #63992',[5] = '~A8 ADD W0, W0, W1',[6] = '~A8 SCVTF D0, W0',[7] = 'C0035FD6r',
+--		},}
+	--		  },
 		[10] = {
 			Name = '🏃 Instant Travel',
 			_Name = '10Travel',
