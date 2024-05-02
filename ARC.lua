@@ -1,0 +1,1 @@
+gg.alert("🚫 THIS FILE IS REMOVED|DELETED FROM THE SERVER.\nA NEW UPDATE IS GIVEN IN THE TELEGRAM CHANNEL USE THAT.\nhttps://t.me/gamehackandscripts")
